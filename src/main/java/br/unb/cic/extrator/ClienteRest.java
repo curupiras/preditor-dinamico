@@ -1,27 +1,26 @@
 package br.unb.cic.extrator;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import br.unb.cic.extrator.onibus.LocalizacaoDao;
-import br.unb.cic.simuladortrafego.onibus.DtoFrota;
+import br.unb.cic.extrator.dominio.Frota;
+import br.unb.cic.extrator.dominio.LocalizacaoRepository;
 
 @Component
-public class ClienteRest implements Runnable {
+public class ClienteRest {
 
-	private LocalizacaoDao localizacaoDao;
-	private RestTemplate restTemplate;
+	@Autowired
+	RestTemplate restTemplate;
+	
+	@Autowired
+	LocalizacaoRepository repository;
 
-	public ClienteRest() {
-		super();
-		restTemplate = new RestTemplate();
-		localizacaoDao = new LocalizacaoDao();
-	}
-
-	@Override
-	public void run() {
-		DtoFrota dtoFrota = restTemplate.getForObject("http://localhost:8080/localizacao", DtoFrota.class);
-		localizacaoDao.insereLocalizacao(dtoFrota);
+	@Scheduled(initialDelay = 0, fixedRate = 10000)
+	public void scheduledTask() {
+		Frota dtoFrota = restTemplate.getForObject("http://localhost:8080/localizacao", Frota.class);
+		repository.save(dtoFrota.getFrota());
 	}
 
 }
