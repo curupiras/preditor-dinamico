@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.GenericGenerator;
 
@@ -13,7 +14,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import br.unb.cic.extrator.dominio.ElementoGrafo;
 
 @Entity
-@Table(name = "arco")
+@Table(name = "arco_preditor")
 public class Arco extends ElementoGrafo {
 
 	@Id
@@ -33,6 +34,12 @@ public class Arco extends ElementoGrafo {
 
 	@Column(name = "linha")
 	private String linha;
+
+	@Transient
+	private ElementoGrafo proximo;
+
+	@Transient
+	private ElementoGrafo anterior;
 
 	public int getId() {
 		return id;
@@ -77,6 +84,24 @@ public class Arco extends ElementoGrafo {
 	@Override
 	public int getNumero() {
 		return this.id;
+	}
+
+	@Override
+	public ElementoGrafo getProximo() {
+		return proximo;
+	}
+
+	public void setProximo(ElementoGrafo proximo) {
+		this.proximo = proximo;
+	}
+
+	@Override
+	public ElementoGrafo getAnterior() {
+		return anterior;
+	}
+
+	public void setAnterior(ElementoGrafo anterior) {
+		this.anterior = anterior;
 	}
 
 }

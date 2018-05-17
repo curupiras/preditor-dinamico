@@ -1,5 +1,6 @@
 package br.unb.cic.extrator;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -35,9 +36,27 @@ public class GeradorDeDadosDeTrafego {
 
 	@PostConstruct
 	public void init() {
-		this.arcos = arcoRepository.findAll();
-		this.nos = noRepository.findAll();
-		System.out.println();
+		this.arcos = arcoRepository.findAllByOrderByIdAsc();
+		this.nos = noRepository.findAllByOrderByIdAsc();
+
+		for (int i = 0; i < nos.size(); i++) {
+			nos.get(i).setProximo(arcos.get(i));
+		}
+
+		for (int i = 0; i < arcos.size(); i++) {
+			arcos.get(i).setAnterior(nos.get(i));
+		}
+
+		for (int i = 1; i < nos.size(); i++) {
+			nos.get(i).setAnterior(arcos.get(i - 1));
+		}
+
+		for (int i = 0; i < arcos.size() - 1; i++) {
+			arcos.get(i).setProximo(nos.get(i + 1));
+		}
+
+		arcos.get(arcos.size() - 1).setProximo(nos.get(0));
+		nos.get(0).setAnterior(arcos.get(arcos.size() - 1));
 	}
 
 	@Scheduled(initialDelay = 0, fixedRate = 60000)
@@ -52,7 +71,24 @@ public class GeradorDeDadosDeTrafego {
 		List<Localizacao> localizacoes = localizacaoRepository.findByOnibusAndProcessadoOrderByDataHoraAsc(onibus,
 				false);
 		encontraElementoGrafoParaCadaLocalizacao(localizacoes);
-		//TODO: Parei aqui!
+
+		for (int i = 0; i < localizacoes.size(); i++) {
+			if (localizacoes.get(i).getElementoGrafo().getClass().equals(Arco.class)) {
+				List<Localizacao> trecho = new ArrayList<Localizacao>();
+				trecho.add(localizacoes.get(i));
+				while (localizacoes.get(i).getElementoGrafo() == localizacoes.get(i + 1).getElementoGrafo()) {
+					i = i + 1;
+					trecho.add(localizacoes.get(i));
+				}
+				extrairDadosDeTravegoDeTrecho(trecho);
+				// TODO: Parei aqui!
+			}
+		}
+	}
+
+	private void extrairDadosDeTravegoDeTrecho(List<Localizacao> trecho) {
+		// TODO Auto-generated method stub
+
 	}
 
 	private void encontraElementoGrafoParaCadaLocalizacao(List<Localizacao> localizacoes) {
