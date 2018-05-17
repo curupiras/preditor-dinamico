@@ -1,4 +1,4 @@
-package br.unb.cic.extrator.dominio;
+package br.unb.cic.extrator.dominio.localizacao;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -21,6 +21,8 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 
+import br.unb.cic.extrator.dominio.ElementoGrafo;
+
 @Entity
 @Table(name = "localizacao_preditor")
 public class Localizacao {
@@ -36,7 +38,7 @@ public class Localizacao {
 	private Date dataHora;
 
 	@Column(name = "ordem")
-	private String nome;
+	private String onibus;
 
 	@Column(name = "linha")
 	private String linha;
@@ -55,6 +57,9 @@ public class Localizacao {
 
 	@Transient
 	private String longitude;
+
+	@Transient
+	private ElementoGrafo elementoGrafo;
 
 	public long getId() {
 		return id;
@@ -84,12 +89,12 @@ public class Localizacao {
 	}
 
 	@JsonProperty("ORDEM")
-	public String getNome() {
-		return nome;
+	public String getOnibus() {
+		return onibus;
 	}
 
-	public void setNome(String nome) {
-		this.nome = nome;
+	public void setOnibus(String onibus) {
+		this.onibus = onibus;
 	}
 
 	@JsonProperty("LINHA")
@@ -156,6 +161,14 @@ public class Localizacao {
 			GeometryFactory geometryFactory = new GeometryFactory();
 			this.geoPto = geometryFactory.createPoint(new Coordinate(bLongitude, bLatitude));
 		}
+	}
+
+	public ElementoGrafo getElementoGrafo() {
+		return elementoGrafo;
+	}
+
+	public void setElementoGrafo(ElementoGrafo elementoGrafo) {
+		this.elementoGrafo = elementoGrafo;
 	}
 
 }

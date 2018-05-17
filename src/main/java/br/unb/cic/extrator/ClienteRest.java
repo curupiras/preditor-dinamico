@@ -5,8 +5,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import br.unb.cic.extrator.dominio.Frota;
-import br.unb.cic.extrator.dominio.LocalizacaoRepository;
+import br.unb.cic.extrator.dominio.frota.Frota;
+import br.unb.cic.extrator.dominio.localizacao.LocalizacaoRepository;
 
 @Component
 public class ClienteRest {
