@@ -22,6 +22,11 @@
 	</parent>
 
 	<dependencies>
+		<dependency>
+			<groupId>br.unb.cic</groupId>
+			<artifactId>lib-trafego</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/postgresql/postgresql -->
 		<dependency>
 			<groupId>postgresql</groupId>
