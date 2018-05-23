@@ -70,7 +70,7 @@ public class GeradorDeDadosDeTrafego {
 		nos.get(0).setAnterior(arcos.get(arcos.size() - 1));
 	}
 
-	@Scheduled(initialDelay = 0, fixedRate = 60000)
+	@Scheduled(initialDelay =1800000, fixedRate = 1800000)
 	public void scheduledTask() {
 		logger.info("Iniciando geração de dados de tráfego.");
 		List<String> listaOnibus = localizacaoRepository.findDistinctOnibus();
