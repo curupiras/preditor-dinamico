@@ -70,7 +70,7 @@ public class GeradorDeDadosDeTrafego {
 		nos.get(0).setAnterior(arcos.get(arcos.size() - 1));
 	}
 
-	@Scheduled(initialDelay =1800000, fixedRate = 1800000)
+	@Scheduled(initialDelay = 0, fixedRate = 3600000)
 	public void scheduledTask() {
 		logger.info("Iniciando geração de dados de tráfego.");
 		List<String> listaOnibus = localizacaoRepository.findDistinctOnibus();
@@ -143,13 +143,13 @@ public class GeradorDeDadosDeTrafego {
 
 	private void extrairDadosDeTrafegoDeParada(List<Localizacao> parada, Localizacao localizacaoAnterior,
 			Localizacao localizacaoPosterior) {
-		
-		if(localizacaoAnterior == null || localizacaoPosterior == null){
-			//TODO: Gravar null ou um valor padrão?
+
+		if (localizacaoAnterior == null || localizacaoPosterior == null) {
+			// TODO: Gravar null ou um valor padrão?
 			armazenarDadosDeTrafegoDaParada(parada, null);
 			return;
 		}
-		
+
 		long tempo = 0;
 
 		// Calcula tempo entre localizacoes da mesma parada
@@ -264,7 +264,7 @@ public class GeradorDeDadosDeTrafego {
 		for (Localizacao localizacao : localizacoes) {
 			No no = getNoQueIntercepta(localizacao.getGeoPto());
 			if (no == null) {
-				localizacao.setElementoGrafo(getArcoQueIntercepta(localizacao.getGeoPto()));
+				localizacao.setElementoGrafo(getArcoQueIntercepta(localizacao, localizacoes));
 			} else {
 				localizacao.setElementoGrafo(no);
 			}
@@ -272,15 +272,61 @@ public class GeradorDeDadosDeTrafego {
 
 	}
 
-	private ElementoGrafo getArcoQueIntercepta(Point geoPto) {
+	private ElementoGrafo getArcoQueIntercepta(Localizacao localizacao, List<Localizacao> localizacoes) {
+		Point geoPto = localizacao.getGeoPto();
+		List<Arco> candidatos = new ArrayList<>();
+
 		for (Arco arco : arcos) {
-			if (geoPto.distance(arco.getGeoLinha()) < 1) {
-				return arco;
+			if (geoPto.distance(arco.getGeoLinha()) < 0.0001) {
+				candidatos.add(arco);
 			}
 		}
 
-		return null;
+		// Se foi encontrado apenas um candidato retorna ele
+		if (candidatos.size() == 1) {
+			return candidatos.get(0);
+		}
+
+		int indice = localizacoes.indexOf(localizacao);
+
+		// Se a localização possui uma localização anterior define elemento por
+		// proximidade ao anterior
+		if (localizacoes.get(indice - 1) != null) {
+			Localizacao localizacaoAnterior = localizacoes.get(indice - 1);
+			ElementoGrafo elementoLocAnteriror = localizacaoAnterior.getElementoGrafo();
+
+			for (Arco candidato : candidatos) {
+				if (candidato == elementoLocAnteriror || candidato == elementoLocAnteriror.getProximo()) {
+					return candidato;
+				}
+			}
+		}
+
+		double menorDistancia = 1;
+		Arco arcoEscolhido = null;
+
+		// Define elemento pelo mais proximo ao ponto
+		for (Arco candidato : candidatos) {
+			if (geoPto.distance(candidato.getGeoLinha()) < menorDistancia) {
+				menorDistancia = geoPto.distance(candidato.getGeoLinha());
+				arcoEscolhido = candidato;
+			}
+		}
+
+		return arcoEscolhido;
 	}
+
+	// Método para resolver problema de arcos que se sobrepõe
+	// private List<ElementoGrafo> getArcosQueIntercepta(Point geoPto) {
+	// List<ElementoGrafo> candidatos = new ArrayList<ElementoGrafo>();
+	// for (Arco arco : arcos) {
+	// if (geoPto.distance(arco.getGeoLinha()) < 1) {
+	// candidatos.add(arco);
+	// }
+	// }
+	//
+	// return candidatos;
+	// }
 
 	private No getNoQueIntercepta(Point geoPto) {
 

@@ -13,7 +13,7 @@ public class ClienteRest {
 
 	@Autowired
 	RestTemplate restTemplate;
-	
+
 	@Autowired
 	LocalizacaoRepository repository;
 
