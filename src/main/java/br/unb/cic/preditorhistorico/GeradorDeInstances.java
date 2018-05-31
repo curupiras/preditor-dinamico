@@ -25,6 +25,7 @@ public class GeradorDeInstances {
 		query.setPassword(senha);
 		query.setDatabaseURL(url);
 		query.setQuery("select datahora, tempo from tempo_viagem_preditor order by datahora asc");
+		query.setSparseData(true);
 		return query.retrieveInstances();
 	}
 
@@ -35,6 +36,7 @@ public class GeradorDeInstances {
 		query.setDatabaseURL(url);
 		query.setQuery("select datahora, tempo from tempo_viagem_preditor where nome = '" + elementoGrafo.getNome()
 				+ "' order by datahora asc");
+		query.setSparseData(true);
 		return query.retrieveInstances();
 	}
 }
