@@ -48,7 +48,7 @@ public class ConstrutorDeModelos {
 		this.nos = noRepository.findAllByOrderByIdAsc();
 	}
 
-	@Scheduled(initialDelay = 0, fixedRate = UM_DIA)
+//	@Scheduled(initialDelay = 0, fixedRate = UM_DIA)
 	public void scheduledTask() {
 		try {
 
