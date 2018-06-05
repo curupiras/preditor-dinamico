@@ -70,7 +70,7 @@ public class GeradorDeDadosDeTrafego {
 		nos.get(0).setAnterior(arcos.get(arcos.size() - 1));
 	}
 
-//	@Scheduled(initialDelay = 0, fixedRate = 3600000)
+	@Scheduled(initialDelay = 3600000, fixedRate = 3600000)
 	public void scheduledTask() {
 		logger.info("Iniciando geração de dados de tráfego.");
 		List<String> listaOnibus = localizacaoRepository.findDistinctOnibus();
@@ -318,7 +318,7 @@ public class GeradorDeDadosDeTrafego {
 
 		// Se a localização possui uma localização anterior define elemento por
 		// proximidade ao anterior
-		if (localizacoes.get(indice - 1) != null) {
+		if (indice != 0 && localizacoes.get(indice - 1) != null) {
 			Localizacao localizacaoAnterior = localizacoes.get(indice - 1);
 			ElementoGrafo elementoLocAnteriror = localizacaoAnterior.getElementoGrafo();
 
