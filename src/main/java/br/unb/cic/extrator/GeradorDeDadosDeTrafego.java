@@ -70,7 +70,7 @@ public class GeradorDeDadosDeTrafego {
 		nos.get(0).setAnterior(arcos.get(arcos.size() - 1));
 	}
 
-	@Scheduled(initialDelay = 3600000, fixedRate = 3600000)
+//	@Scheduled(initialDelay = 0, fixedRate = 3600000)
 	public void scheduledTask() {
 		logger.info("Iniciando geração de dados de tráfego.");
 		List<String> listaOnibus = localizacaoRepository.findDistinctOnibus();
@@ -208,10 +208,23 @@ public class GeradorDeDadosDeTrafego {
 		long tempo = 0;
 
 		// Calcula tempo entre pontos do trecho
-		for (int i = 0; i < trecho.size() - 1; i++) {
-			tempo = tempo + Math.abs(trecho.get(i).getDataHora().getTime() - trecho.get(i + 1).getDataHora().getTime())
-					/ 1000;
-		}
+		// for (int i = 0; i < trecho.size() - 1; i++) {
+		// tempo = tempo + Math.abs(trecho.get(i).getDataHora().getTime() -
+		// trecho.get(i + 1).getDataHora().getTime())
+		// / 1000;
+		// }
+
+		// Retira do trecho localizações com velocidade instantânea igual a zero
+		// for (Localizacao localizacao : trecho) {
+		// if (localizacao.getVelocidade() <= 0) {
+		// trecho.remove(localizacao);
+		// logger.info("Removido localização com velocidade zero, id = " +
+		// localizacao.getId());
+		// }
+		// }
+		
+		tempo = tempo + Math.abs(
+				trecho.get(0).getDataHora().getTime() - trecho.get(trecho.size() - 1).getDataHora().getTime()) / 1000;
 
 		// Calcula tempo entre primeiro ponto do trecho e parada anterior
 		Point primeiroPontoDoTrecho = trecho.get(0).getGeoPto();
@@ -220,6 +233,13 @@ public class GeradorDeDadosDeTrafego {
 		// reta
 		double distancia = primeiroPontoDoTrecho.distance(paradaAnterior);
 		double velocidade = trecho.get(0).getVelocidade() * Parametros.KILOMETROS_POR_HORA_PARA_METROS_POR_SEGUNDO;
+
+		// TODO: Analisar se essa verificação é necessária
+		// if (velocidade <= 0 && trecho.size() > 1) {
+		// velocidade = trecho.get(1).getVelocidade() *
+		// Parametros.KILOMETROS_POR_HORA_PARA_METROS_POR_SEGUNDO;
+		// }
+
 		double periodo = distancia / velocidade;
 		tempo = tempo + (long) Math.round(periodo);
 
@@ -231,6 +251,13 @@ public class GeradorDeDadosDeTrafego {
 		distancia = ultimoPontoDoTrecho.distance(paradaPosterior);
 		velocidade = trecho.get(trecho.size() - 1).getVelocidade()
 				* Parametros.KILOMETROS_POR_HORA_PARA_METROS_POR_SEGUNDO;
+
+		// TODO: Analisar se essa verificação é necessária
+		// if (velocidade <= 0 && trecho.size() > 1) {
+		// velocidade = trecho.get(trecho.size() - 2).getVelocidade() *
+		// Parametros.KILOMETROS_POR_HORA_PARA_METROS_POR_SEGUNDO;
+		// }
+
 		periodo = distancia / velocidade;
 		tempo = tempo + (long) Math.round(periodo);
 
