@@ -48,10 +48,13 @@ public class ConstrutorDeModelos {
 		this.nos = noRepository.findAllByOrderByIdAsc();
 	}
 
-//	@Scheduled(initialDelay = 0, fixedRate = UM_DIA)
+	@Scheduled(initialDelay = 0, fixedRate = UM_DIA)
 	public void scheduledTask() {
 		try {
 
+			
+			
+			
 			// carregar dados de viagem do banco de dados
 			Instances data = geradorDeInstances.getInstancesFromDB(arcos.get(0));
 			System.out.println(data);

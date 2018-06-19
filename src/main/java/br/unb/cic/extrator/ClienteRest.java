@@ -17,7 +17,7 @@ public class ClienteRest {
 	@Autowired
 	LocalizacaoRepository repository;
 
-	@Scheduled(initialDelay = 0, fixedRate = 10000)
+//	@Scheduled(initialDelay = 0, fixedRate = 10000)
 	public void scheduledTask() {
 		Frota dtoFrota = restTemplate.getForObject("http://localhost:8080/localizacao", Frota.class);
 		repository.save(dtoFrota.getFrota());

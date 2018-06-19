@@ -25,6 +25,9 @@ public class TempoViagem {
 		this.nome = nome;
 		this.tempo = tempo;
 	}
+	
+	public TempoViagem() {
+	}
 
 	@Column(name = "datahora")
 	private Date dataHora;
