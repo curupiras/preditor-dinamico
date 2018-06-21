@@ -75,7 +75,7 @@ public class ConstrutorDeModelos {
 
 		for (No no : nos) {
 			logger.info("Iniciando construção do Modelo para o no " + no.getNome());
-			construirModelo(nos.get(0));
+			construirModelo(no);
 			logger.info("Fim da construção do Modelo para o no " + no.getNome());
 		}
 	}
