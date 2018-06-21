@@ -82,32 +82,25 @@ public class ConstrutorDeModelos {
 
 	private void construirModelo(ElementoGrafo elementoGrafo) {
 		try {
-			
+
+			Instances dados = geradorDeInstances.getInstancesFromDB(elementoGrafo);
+			// dados.randomize(new Random(42));
+			dados.setClassIndex(0);
+
+			SMOreg classificador = new SMOreg();
+			classificador.setOptions(Utils.splitOptions(
+					"-C 1.0 -N 0 -I \"weka.classifiers.functions.supportVector.RegSMOImproved -T 0.001 -V -P 1.0E-12 -L 0.001 -W 1\" -K \"weka.classifiers.functions.supportVector.PolyKernel -E 1.0 -C 250007\""));
+
 			Evaluation avaliador = null;
 
 			if (avaliacaoCruzada) {
-
-				// Carregar dados de viagem do banco de dados
-				Instances dados = geradorDeInstances.getInstancesFromDB(elementoGrafo);
-				dados.setClassIndex(0);
-
-				// Criar nova instancia do classificador
-				SMOreg classificador = new SMOreg();
-				classificador.setOptions(Utils.splitOptions(
-						"-C 1.0 -N 0 -I \"weka.classifiers.functions.supportVector.RegSMOImproved -T 0.001 -V -P 1.0E-12 -L 0.001 -W 1\" -K \"weka.classifiers.functions.supportVector.PolyKernel -E 1.0 -C 250007\""));
 				classificador.buildClassifier(dados);
 
-				// Fazer avalização cruzada
 				avaliador = new Evaluation(dados);
 				avaliador.crossValidateModel(classificador, dados, numFolds, new Random(1));
 			}
 
 			if (treinoETeste) {
-
-				// Carregar dados de viagem do banco de dados
-				Instances dados = geradorDeInstances.getInstancesFromDB(elementoGrafo);
-				// dados.randomize(new Random(42));
-
 				RemovePercentage rp = new RemovePercentage();
 				rp.setInputFormat(dados);
 				rp.setPercentage(porcentagemDeTeste);
@@ -122,18 +115,13 @@ public class ConstrutorDeModelos {
 				treino.setClassIndex(0);
 				teste.setClassIndex(0);
 
-				// Treinar classificador
-				SMOreg classificador = new SMOreg();
-				classificador.setOptions(Utils.splitOptions(
-						"-C 1.0 -N 0 -I \"weka.classifiers.functions.supportVector.RegSMOImproved -T 0.001 -V -P 1.0E-12 -L 0.001 -W 1\" -K \"weka.classifiers.functions.supportVector.PolyKernel -E 1.0 -C 250007\""));
 				classificador.buildClassifier(treino);
 
-				// Avaliar o classificador
 				avaliador = new Evaluation(treino);
 				avaliador.evaluateModel(classificador, teste);
 			}
-			
-			if(avaliador != null){
+
+			if (avaliador != null) {
 				List<String> resultado = getResultado(avaliador);
 				gravadorResultados.escreverResultado(elementoGrafo, resultado);
 				System.out.println(avaliador.toSummaryString("\nResults\n======\n", false));
