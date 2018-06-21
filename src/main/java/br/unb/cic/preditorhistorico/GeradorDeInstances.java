@@ -7,18 +7,18 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.template.TemplateAvailabilityProviders;
 import org.springframework.stereotype.Component;
 
 import br.unb.cic.extrator.dominio.ElementoGrafo;
+import br.unb.cic.extrator.dominio.localizacao.Localizacao;
 import br.unb.cic.extrator.dominio.localizacao.LocalizacaoRepository;
 import br.unb.cic.extrator.dominio.tempoviagem.TempoViagem;
 import br.unb.cic.extrator.dominio.tempoviagem.TempoViagemRepository;
 import br.unb.cic.preditor.dominio.instance.Instance;
+import br.unb.cic.preditor.dominio.instance.InstanceRepository;
 import br.unb.cic.preditorhistorico.util.Util;
 import weka.core.Instances;
 import weka.experiment.InstanceQuery;
-import weka.gui.experiment.GeneratorPropertyIteratorPanel;
 
 @Component
 public class GeradorDeInstances {
@@ -48,6 +48,9 @@ public class GeradorDeInstances {
 	private LocalizacaoRepository localizacaoRepository;
 
 	@Autowired
+	private InstanceRepository instanceRepository;
+
+	@Autowired
 	private Util util;
 
 	public Instances getInstancesFromDB() throws Exception {
@@ -62,40 +65,84 @@ public class GeradorDeInstances {
 
 	public Instances getInstancesFromDB(ElementoGrafo elementoGrafo) throws Exception {
 		popularTabelaInstance(elementoGrafo);
-
 		InstanceQuery query = new InstanceQuery();
 		query.setUsername(usuario);
 		query.setPassword(senha);
 		query.setDatabaseURL(url);
-		query.setQuery("select datahora, tempo from tempo_viagem_preditor where nome = '" + elementoGrafo.getNome()
-				+ "' order by datahora asc");
+		query.setQuery(getQuery());
 		query.setSparseData(true);
 		return query.retrieveInstances();
 	}
 
+	private String getQuery() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("select tempo_de_viagem, periodo_do_dia, dia_da_semana, velocidade_media");
+		for (int i = 0; i < quantidadeDeTemposDeViagemAnteriores; i++) {
+			sb.append(", tempo_de_viagem_");
+			sb.append(i + 1);
+		}
+		sb.append(" from instance_preditor order by id asc");
+		return sb.toString();
+	}
+
 	private void popularTabelaInstance(ElementoGrafo elementoGrafo) {
+		instanceRepository.deleteAll();
 		List<TempoViagem> temposDeViagem = tempoViagemRepository.findByNomeOrderByDataHoraDesc(elementoGrafo.getNome());
 		for (int i = 0; i < temposDeViagem.size(); i++) {
 			TempoViagem tempoDeViagem = temposDeViagem.get(i);
 
 			long idTempoViagem = tempoDeViagem.getId();
+			long tempo = tempoDeViagem.getTempo();
 			double periodoDoDia = getPeriodoDoDia(tempoDeViagem);
 			int diaDaSemana = getDiaDaSemana(tempoDeViagem);
 			List<Double> temposDeViagemAnteriores = getTemposDeViagemAnteriores(temposDeViagem, i);
-			double velocidadeMedia = getVelocidadeMedia(temposDeViagem, i);
+			double velocidadeMedia = getVelocidadeMedia(tempoDeViagem);
 
-			System.out.println(velocidadeMedia);
+			Instance instance = new Instance();
+			instance.setIdTempoViagem(idTempoViagem);
+			instance.setTempoViagem(tempo);
+			instance.setPeriodoDoDia(periodoDoDia);
+			instance.setDiaDaSemana(diaDaSemana);
+			instance.setTemposDeViagemAnteriores(temposDeViagemAnteriores);
+			instance.setVelocidadeMedia(velocidadeMedia);
+
+			instanceRepository.save(instance);
 		}
 
 	}
 
 	private double getVelocidadeMedia(TempoViagem tempoDeViagem) {
-		// TODO:Gravar Onibus no tempo de Viagem e recupera Velocidades
-		// Anteriores do Banco
-		List<Double> velocidadesAnteriores = localizacaoRepository
-				.findTop6ByOnibusAndDataHoraLessThanOrderByDataHoraDesc(tempoDeViagem.getOnibus(),
-						tempoDeViagem.getDataHora());
-		return util.calculaMedia(velocidadesAnteriores);
+		double velocidadeMedia;
+		List<Localizacao> localizacoesAnteriores = getLocalizacoesAnteriores(tempoDeViagem.getOnibus(),
+				tempoDeViagem.getDataHora());
+
+		velocidadeMedia = util.calculaMedia(localizacoesAnteriores);
+		if (velocidadeMedia == 0) {
+			velocidadeMedia = getUltimaLocalizacao(tempoDeViagem.getOnibus(), tempoDeViagem.getDataHora())
+					.getVelocidade();
+		}
+		return velocidadeMedia;
+	}
+
+	private List<Localizacao> getLocalizacoesAnteriores(String onibus, Date data) {
+
+		if (quantidadeDeAmostrasParaCalculoDaVelocidadeMedia == 6) {
+			return localizacaoRepository.findTop6ByOnibusAndDataHoraLessThanOrderByDataHoraDesc(onibus, data);
+		} else if (quantidadeDeAmostrasParaCalculoDaVelocidadeMedia == 5) {
+			return localizacaoRepository.findTop5ByOnibusAndDataHoraLessThanOrderByDataHoraDesc(onibus, data);
+		} else if (quantidadeDeAmostrasParaCalculoDaVelocidadeMedia == 4) {
+			return localizacaoRepository.findTop4ByOnibusAndDataHoraLessThanOrderByDataHoraDesc(onibus, data);
+		} else if (quantidadeDeAmostrasParaCalculoDaVelocidadeMedia == 3) {
+			return localizacaoRepository.findTop3ByOnibusAndDataHoraLessThanOrderByDataHoraDesc(onibus, data);
+		} else if (quantidadeDeAmostrasParaCalculoDaVelocidadeMedia == 2) {
+			return localizacaoRepository.findTop2ByOnibusAndDataHoraLessThanOrderByDataHoraDesc(onibus, data);
+		} else {
+			return localizacaoRepository.findTop1ByOnibusAndDataHoraLessThanOrderByDataHoraDesc(onibus, data);
+		}
+	}
+
+	private Localizacao getUltimaLocalizacao(String onibus, Date data) {
+		return localizacaoRepository.findTop1ByOnibusAndDataHoraOrderByDataHoraDesc(onibus, data);
 	}
 
 	private List<Double> getTemposDeViagemAnteriores(List<TempoViagem> temposDeViagem, int i) {
@@ -131,16 +178,4 @@ public class GeradorDeInstances {
 		return (horas * HORAS_PARA_SEGUNDOS + minutos * MINUTOS_PARA_SEGUNDOS + segundos) / (HORAS_PARA_SEGUNDOS);
 	}
 
-	// public Instances getInstancesFromDB(ElementoGrafo elementoGrafo) throws
-	// Exception {
-	// InstanceQuery query = new InstanceQuery();
-	// query.setUsername(usuario);
-	// query.setPassword(senha);
-	// query.setDatabaseURL(url);
-	// query.setQuery("select datahora, tempo from tempo_viagem_preditor where
-	// nome = '" + elementoGrafo.getNome()
-	// + "' order by datahora asc");
-	// query.setSparseData(true);
-	// return query.retrieveInstances();
-	// }
 }

@@ -70,7 +70,7 @@ public class GeradorDeDadosDeTrafego {
 		nos.get(0).setAnterior(arcos.get(arcos.size() - 1));
 	}
 
-//	@Scheduled(initialDelay = 3600000, fixedRate = 3600000)
+//	@Scheduled(initialDelay = 0, fixedRate = 3600000)
 	public void scheduledTask() {
 		logger.info("Iniciando geração de dados de tráfego.");
 		List<String> listaOnibus = localizacaoRepository.findDistinctOnibus();
@@ -268,7 +268,7 @@ public class GeradorDeDadosDeTrafego {
 	private void armazenarDadosDeTrafegoDoTrecho(List<Localizacao> trecho, long tempo) {
 		Localizacao primeiraLocalizacao = trecho.get(0);
 		TempoViagem tempoViagem = new TempoViagem(primeiraLocalizacao.getDataHora(),
-				primeiraLocalizacao.getElementoGrafo().getNome(), tempo);
+				primeiraLocalizacao.getElementoGrafo().getNome(), tempo, primeiraLocalizacao.getOnibus());
 		tempoViagemRepository.save(tempoViagem);
 		for (Localizacao localizacao : trecho) {
 			localizacao.setProcessado(true);
@@ -279,7 +279,7 @@ public class GeradorDeDadosDeTrafego {
 	private void armazenarDadosDeTrafegoDaParada(List<Localizacao> parada, Long tempo) {
 		Localizacao primeiraLocalizacao = parada.get(0);
 		TempoViagem tempoViagem = new TempoViagem(primeiraLocalizacao.getDataHora(),
-				primeiraLocalizacao.getElementoGrafo().getNome(), tempo);
+				primeiraLocalizacao.getElementoGrafo().getNome(), tempo, primeiraLocalizacao.getOnibus());
 		tempoViagemRepository.save(tempoViagem);
 		for (Localizacao localizacao : parada) {
 			localizacao.setProcessado(true);

@@ -1,30 +1,42 @@
 package br.unb.cic.preditorhistorico;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.util.List;
+import java.util.Random;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import br.unb.cic.extrator.dominio.ElementoGrafo;
 import br.unb.cic.extrator.dominio.arco.Arco;
 import br.unb.cic.extrator.dominio.arco.ArcoRepository;
 import br.unb.cic.extrator.dominio.no.No;
 import br.unb.cic.extrator.dominio.no.NoRepository;
-import weka.classifiers.evaluation.NumericPrediction;
-import weka.classifiers.functions.GaussianProcesses;
+import weka.classifiers.Evaluation;
 import weka.classifiers.functions.SMOreg;
-import weka.classifiers.timeseries.WekaForecaster;
 import weka.core.Instances;
-import weka.experiment.InstanceQuery;
+import weka.core.Utils;
+import weka.filters.Filter;
+import weka.filters.unsupervised.instance.RemovePercentage;
 
 @Component
 public class ConstrutorDeModelos {
+
+	@Value("${preditor.numeroDeFolds}")
+	private int numFolds;
+
+	@Value("${preditor.avaliacaoCruzada}")
+	private boolean avaliacaoCruzada;
+
+	@Value("${preditor.treinoETeste}")
+	private boolean treinoETeste;
+
+	@Value("${preditor.porcentagemDeTeste}")
+	private double porcentagemDeTeste;
 
 	@Autowired
 	GeradorDeInstances geradorDeInstances;
@@ -36,11 +48,11 @@ public class ConstrutorDeModelos {
 	private NoRepository noRepository;
 
 	private static final int UM_DIA = 86400000;
-	private static final int NUMERO_DE_PREDICOES = 3;
-	private static final int NUMERO_DE_VARIAVEIS_PREDITAS = 1;
 
 	private List<Arco> arcos;
 	private List<No> nos;
+
+	private static final Logger logger = Logger.getLogger(ConstrutorDeModelos.class.getName());
 
 	@PostConstruct
 	public void init() {
@@ -48,131 +60,76 @@ public class ConstrutorDeModelos {
 		this.nos = noRepository.findAllByOrderByIdAsc();
 	}
 
-	@Scheduled(initialDelay = 0, fixedRate = UM_DIA)
+	@Scheduled(initialDelay = 10000, fixedRate = UM_DIA)
 	public void scheduledTask() {
+		for (Arco arco : arcos) {
+			logger.info("Iniciando construção do Modelo para o arco " + arco.getNome());
+			construirModelo(arco);
+			logger.info("Fim da construção do Modelo para o arco " + arco.getNome());
+		}
+
+		for (No no : nos) {
+			logger.info("Iniciando construção do Modelo para o no " + no.getNome());
+			construirModelo(no);
+			logger.info("Fim da construção do Modelo para o no " + no.getNome());
+		}
+	}
+
+	private void construirModelo(ElementoGrafo elementoGrafo) {
 		try {
 
-			
-			
-			
-			// carregar dados de viagem do banco de dados
-			Instances data = geradorDeInstances.getInstancesFromDB(arcos.get(0));
-			System.out.println(data);
+			if (avaliacaoCruzada) {
 
-			// novo preditor
-			WekaForecaster preditor = new WekaForecaster();
+				// Carregar dados de viagem do banco de dados
+				Instances dados = geradorDeInstances.getInstancesFromDB(elementoGrafo);
+				dados.setClassIndex(0);
 
-			// ajustar a variável alvo a ser predita. This method calls
-			// setFieldsToLag() on the lag maker object for us
-			preditor.setFieldsToForecast("tempo");
+				// Criar nova instancia do classificador
+				SMOreg classificador = new SMOreg();
+				classificador.setOptions(Utils.splitOptions(
+						"-C 1.0 -N 0 -I \"weka.classifiers.functions.supportVector.RegSMOImproved -T 0.001 -V -P 1.0E-12 -L 0.001 -W 1\" -K \"weka.classifiers.functions.supportVector.PolyKernel -E 1.0 -C 250007\""));
+				classificador.buildClassifier(dados);
 
-			// default underlying classifier is SMOreg (SVM) - we'll use
-			// gaussian processes for regression instead
-			preditor.setBaseForecaster(new SMOreg());
-
-			preditor.getTSLagMaker().setTimeStampField("datahora");
-
-			// construir o medelo
-			preditor.buildForecaster(data, System.out);
-
-			// prime the forecaster with enough recent historical data
-			// to cover up to the maximum lag. In our case, we could just supply
-			// the 12 most recent historical instances, as this covers our
-			// maximum
-			// lag period
-			preditor.primeForecaster(data);
-
-			// forecast for 12 units (months) beyond the end of the
-			// training data
-			List<List<NumericPrediction>> predicao = preditor.forecast(NUMERO_DE_PREDICOES, System.out);
-
-			// output the predictions. Outer list is over the steps; inner list
-			// is over
-			// the targets
-			for (int i = 0; i < NUMERO_DE_PREDICOES; i++) {
-				List<NumericPrediction> predsAtStep = predicao.get(i);
-				for (int j = 0; j < NUMERO_DE_VARIAVEIS_PREDITAS; j++) {
-					NumericPrediction predForTarget = predsAtStep.get(j);
-					System.out.print("" + predForTarget.predicted() + " ");
-				}
-				System.out.println();
+				// Fazer avalização cruzada
+				Evaluation avaliador = new Evaluation(dados);
+				avaliador.crossValidateModel(classificador, dados, numFolds, new Random(1));
+				System.out.println(avaliador.toSummaryString("\nResults\n======\n", false));
 			}
 
-			// // path to the Australian wine data included with the time series
-			// // forecasting
-			// // package
-			// String pathToWineData =
-			// weka.core.WekaPackageManager.PACKAGES_DIR.toString() +
-			// File.separator
-			// + "timeseriesForecasting" + File.separator + "sample-data" +
-			// File.separator + "wine.arff";
-			//
-			// // load the wine data
-			// Instances wine = new Instances(new BufferedReader(new
-			// FileReader(pathToWineData)));
-			//
-			// // new forecaster
-			// WekaForecaster forecaster = new WekaForecaster();
-			//
-			// // set the targets we want to forecast. This method calls
-			// // setFieldsToLag() on the lag maker object for us
-			// forecaster.setFieldsToForecast("Fortified,Dry-white");
-			//
-			// // default underlying classifier is SMOreg (SVM) - we'll use
-			// // gaussian processes for regression instead
-			// forecaster.setBaseForecaster(new GaussianProcesses());
-			//
-			// forecaster.getTSLagMaker().setTimeStampField("Date"); // date
-			// time
-			// // stamp
-			// forecaster.getTSLagMaker().setMinLag(1);
-			// forecaster.getTSLagMaker().setMaxLag(12); // monthly data
-			//
-			// // add a month of the year indicator field
-			// forecaster.getTSLagMaker().setAddMonthOfYear(true);
-			//
-			// // add a quarter of the year indicator field
-			// forecaster.getTSLagMaker().setAddQuarterOfYear(true);
-			//
-			// // build the model
-			// forecaster.buildForecaster(wine, System.out);
-			//
-			// // prime the forecaster with enough recent historical data
-			// // to cover up to the maximum lag. In our case, we could just
-			// supply
-			// // the 12 most recent historical instances, as this covers our
-			// // maximum
-			// // lag period
-			// forecaster.primeForecaster(wine);
-			//
-			// // forecast for 12 units (months) beyond the end of the
-			// // training data
-			// List<List<NumericPrediction>> forecast = forecaster.forecast(12,
-			// System.out);
-			//
-			// // output the predictions. Outer list is over the steps; inner
-			// list
-			// // is over
-			// // the targets
-			// for (int i = 0; i < 12; i++) {
-			// List<NumericPrediction> predsAtStep = forecast.get(i);
-			// for (int j = 0; j < 2; j++) {
-			// NumericPrediction predForTarget = predsAtStep.get(j);
-			// System.out.print("" + predForTarget.predicted() + " ");
-			// }
-			// System.out.println();
-			// }
-			//
-			// // we can continue to use the trained forecaster for further
-			// // forecasting
-			// // by priming with the most recent historical data (as it becomes
-			// // available).
-			// // At some stage it becomes prudent to re-build the model using
-			// // current
-			// // historical data.
+			if (treinoETeste) {
+
+				// Carregar dados de viagem do banco de dados
+				Instances dados = geradorDeInstances.getInstancesFromDB(elementoGrafo);
+				// dados.randomize(new Random(42));
+
+				RemovePercentage rp = new RemovePercentage();
+				rp.setInputFormat(dados);
+				rp.setPercentage(porcentagemDeTeste);
+				Instances treino = Filter.useFilter(dados, rp);
+
+				rp = new RemovePercentage();
+				rp.setInputFormat(dados);
+				rp.setPercentage(porcentagemDeTeste);
+				rp.setInvertSelection(true);
+				Instances teste = Filter.useFilter(dados, rp);
+
+				treino.setClassIndex(0);
+				teste.setClassIndex(0);
+
+				// Treinar classificador
+				SMOreg classificador = new SMOreg();
+				classificador.setOptions(Utils.splitOptions(
+						"-C 1.0 -N 0 -I \"weka.classifiers.functions.supportVector.RegSMOImproved -T 0.001 -V -P 1.0E-12 -L 0.001 -W 1\" -K \"weka.classifiers.functions.supportVector.PolyKernel -E 1.0 -C 250007\""));
+				classificador.buildClassifier(treino);
+
+				// Avaliar o classificador
+				Evaluation avaliador = new Evaluation(treino);
+				avaliador.evaluateModel(classificador, teste);
+				System.out.println(avaliador.toSummaryString("\nResults\n======\n", false));
+			}
 
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			logger.error("Erro na construção do modelo para: " + elementoGrafo.getNome(), ex);
 		}
 	}
 

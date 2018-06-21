@@ -1,5 +1,7 @@
 package br.unb.cic.preditor.dominio.instance;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -18,7 +20,10 @@ public class Instance {
 	private long id;
 
 	@Column(name = "id_tempo_viagem_preditor")
-	private int idTempoViagem;
+	private long idTempoViagem;
+
+	@Column(name = "tempo_de_viagem")
+	private double tempoViagem;
 
 	@Column(name = "periodo_do_dia")
 	private double periodoDoDia;
@@ -55,12 +60,20 @@ public class Instance {
 		this.id = id;
 	}
 
-	public int getIdTempoViagem() {
+	public long getIdTempoViagem() {
 		return idTempoViagem;
 	}
 
-	public void setIdTempoViagem(int idTempoViagem) {
+	public void setIdTempoViagem(long idTempoViagem) {
 		this.idTempoViagem = idTempoViagem;
+	}
+
+	public double getTempoViagem() {
+		return tempoViagem;
+	}
+
+	public void setTempoViagem(double tempoViagem) {
+		this.tempoViagem = tempoViagem;
 	}
 
 	public double getPeriodoDoDia() {
@@ -133,6 +146,25 @@ public class Instance {
 
 	public void setVelocidadeMedia(double velocidadeMedia) {
 		this.velocidadeMedia = velocidadeMedia;
+	}
+
+	public void setTemposDeViagemAnteriores(List<Double> temposDeViagemAnteriores) {
+		for (int i = 0; i < temposDeViagemAnteriores.size(); i++) {
+			if (i == 0) {
+				setTempoViagem1(temposDeViagemAnteriores.get(i));
+			} else if (i == 1) {
+				setTempoViagem2(temposDeViagemAnteriores.get(i));
+			} else if (i == 2) {
+				setTempoViagem3(temposDeViagemAnteriores.get(i));
+			} else if (i == 3) {
+				setTempoViagem4(temposDeViagemAnteriores.get(i));
+			} else if (i == 4) {
+				setTempoViagem5(temposDeViagemAnteriores.get(i));
+			} else if (i == 5) {
+				setTempoViagem6(temposDeViagemAnteriores.get(i));
+			}
+		}
+
 	}
 
 }
