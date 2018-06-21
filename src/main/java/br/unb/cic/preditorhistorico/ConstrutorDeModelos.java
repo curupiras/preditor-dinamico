@@ -60,7 +60,7 @@ public class ConstrutorDeModelos {
 		this.nos = noRepository.findAllByOrderByIdAsc();
 	}
 
-	@Scheduled(initialDelay = 10000, fixedRate = UM_DIA)
+	@Scheduled(initialDelay = 0, fixedRate = UM_DIA)
 	public void scheduledTask() {
 		for (Arco arco : arcos) {
 			logger.info("Iniciando construção do Modelo para o arco " + arco.getNome());
@@ -70,7 +70,7 @@ public class ConstrutorDeModelos {
 
 		for (No no : nos) {
 			logger.info("Iniciando construção do Modelo para o no " + no.getNome());
-			construirModelo(no);
+			construirModelo(nos.get(0));
 			logger.info("Fim da construção do Modelo para o no " + no.getNome());
 		}
 	}

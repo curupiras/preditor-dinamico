@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface TempoViagemRepository extends JpaRepository<TempoViagem, Long> {
 
 	TempoViagem findById(long id);
-	List<TempoViagem> findByNomeOrderByDataHoraDesc(String nome);
+	List<TempoViagem> findByNomeAndTempoNotNullOrderByDataHoraDesc(String nome);
 
 }
