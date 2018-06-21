@@ -1,5 +1,6 @@
 package br.unb.cic.preditorhistorico;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -16,6 +17,7 @@ import br.unb.cic.extrator.dominio.arco.Arco;
 import br.unb.cic.extrator.dominio.arco.ArcoRepository;
 import br.unb.cic.extrator.dominio.no.No;
 import br.unb.cic.extrator.dominio.no.NoRepository;
+import br.unb.cic.preditorhistorico.resultados.GravadorResultados;
 import weka.classifiers.Evaluation;
 import weka.classifiers.functions.SMOreg;
 import weka.core.Instances;
@@ -39,13 +41,16 @@ public class ConstrutorDeModelos {
 	private double porcentagemDeTeste;
 
 	@Autowired
-	GeradorDeInstances geradorDeInstances;
+	private GeradorDeInstances geradorDeInstances;
 
 	@Autowired
 	private ArcoRepository arcoRepository;
 
 	@Autowired
 	private NoRepository noRepository;
+
+	@Autowired
+	private GravadorResultados gravadorResultados;
 
 	private static final int UM_DIA = 86400000;
 
@@ -77,6 +82,8 @@ public class ConstrutorDeModelos {
 
 	private void construirModelo(ElementoGrafo elementoGrafo) {
 		try {
+			
+			Evaluation avaliador = null;
 
 			if (avaliacaoCruzada) {
 
@@ -91,9 +98,8 @@ public class ConstrutorDeModelos {
 				classificador.buildClassifier(dados);
 
 				// Fazer avalização cruzada
-				Evaluation avaliador = new Evaluation(dados);
+				avaliador = new Evaluation(dados);
 				avaliador.crossValidateModel(classificador, dados, numFolds, new Random(1));
-				System.out.println(avaliador.toSummaryString("\nResults\n======\n", false));
 			}
 
 			if (treinoETeste) {
@@ -123,14 +129,30 @@ public class ConstrutorDeModelos {
 				classificador.buildClassifier(treino);
 
 				// Avaliar o classificador
-				Evaluation avaliador = new Evaluation(treino);
+				avaliador = new Evaluation(treino);
 				avaliador.evaluateModel(classificador, teste);
+			}
+			
+			if(avaliador != null){
+				List<String> resultado = getResultado(avaliador);
+				gravadorResultados.escreverResultado(elementoGrafo, resultado);
 				System.out.println(avaliador.toSummaryString("\nResults\n======\n", false));
 			}
 
 		} catch (Exception ex) {
 			logger.error("Erro na construção do modelo para: " + elementoGrafo.getNome(), ex);
 		}
+	}
+
+	private List<String> getResultado(Evaluation avaliador) throws Exception {
+		List<String> resultado = new ArrayList<>();
+		resultado.add(Double.toString(avaliador.correlationCoefficient()));
+		resultado.add(Double.toString(avaliador.meanAbsoluteError()));
+		resultado.add(Double.toString(avaliador.rootMeanSquaredError()));
+		resultado.add(Double.toString(avaliador.relativeAbsoluteError()));
+		resultado.add(Double.toString(avaliador.rootRelativeSquaredError()));
+		resultado.add(Double.toString(avaliador.numInstances()));
+		return resultado;
 	}
 
 }
