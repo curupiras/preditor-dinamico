@@ -65,28 +65,29 @@ public class ConstrutorDeModelos {
 		this.nos = noRepository.findAllByOrderByIdAsc();
 	}
 
-	@Scheduled(initialDelay = 0, fixedRate = UM_DIA)
-	public void scheduledTask() {
+//	@Scheduled(initialDelay = 0, fixedRate = UM_DIA)
+	public void construirModelo(int quantidadeDeTemposDeViagemAnteriores) {
 		for (Arco arco : arcos) {
 			logger.info("Iniciando construção do Modelo para o arco " + arco.getNome());
-			construirModelo(arco);
+			construirModelo(arco, quantidadeDeTemposDeViagemAnteriores);
 			logger.info("Fim da construção do Modelo para o arco " + arco.getNome());
 		}
 
 		for (No no : nos) {
 			logger.info("Iniciando construção do Modelo para o no " + no.getNome());
-			construirModelo(no);
+			construirModelo(no, quantidadeDeTemposDeViagemAnteriores);
 			logger.info("Fim da construção do Modelo para o no " + no.getNome());
 		}
 	}
 
-	private void construirModelo(ElementoGrafo elementoGrafo) {
+	private void construirModelo(ElementoGrafo elementoGrafo, int quantidadeDeTemposDeViagemAnteriores) {
 		try {
 
-			Instances dados = geradorDeInstances.getInstancesFromDB(elementoGrafo);
+			Instances dados = geradorDeInstances.getInstancesFromDB(elementoGrafo, quantidadeDeTemposDeViagemAnteriores);
 			// dados.randomize(new Random(42));
 			dados.setClassIndex(0);
 
+			//TODO: passar o objeto SMOreg como parametro assim como os Options
 			SMOreg classificador = new SMOreg();
 			classificador.setOptions(Utils.splitOptions(
 					"-C 1.0 -N 0 -I \"weka.classifiers.functions.supportVector.RegSMOImproved -T 0.001 -V -P 1.0E-12 -L 0.001 -W 1\" -K \"weka.classifiers.functions.supportVector.PolyKernel -E 1.0 -C 250007\""));

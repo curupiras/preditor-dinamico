@@ -35,7 +35,7 @@ public class GeradorDeInstances {
 	@Value("${spring.datasource.url}")
 	private String url;
 
-	@Value("${preditor.quantidadeDeTemposDeViagemAnteriores}")
+//	@Value("${preditor.quantidadeDeTemposDeViagemAnteriores}")
 	private int quantidadeDeTemposDeViagemAnteriores;
 
 	@Value("${preditor.quantidadeDeAmostrasParaCalculoDaVelocidadeMedia}")
@@ -63,7 +63,8 @@ public class GeradorDeInstances {
 		return query.retrieveInstances();
 	}
 
-	public Instances getInstancesFromDB(ElementoGrafo elementoGrafo) throws Exception {
+	public Instances getInstancesFromDB(ElementoGrafo elementoGrafo, int quantidadeDeTemposDeViagemAnteriores) throws Exception {
+		this.quantidadeDeTemposDeViagemAnteriores = quantidadeDeTemposDeViagemAnteriores;
 		popularTabelaInstance(elementoGrafo);
 		InstanceQuery query = new InstanceQuery();
 		query.setUsername(usuario);
