@@ -143,7 +143,7 @@ public class ConstrutorDeModelos {
 				tempoViagemRepository.updateProcessado(resultado.getElementoGrafo());
 				resultadoRepository.save(resultado);
 				criarArff(dados, resultado);
-				System.out.println(avaliador.toSummaryString("\nResults\n======\n", false));
+//				System.out.println(avaliador.toSummaryString("\nResults\n======\n", false));
 			}
 
 		} catch (Exception ex) {
@@ -155,7 +155,7 @@ public class ConstrutorDeModelos {
 		ArffSaver s = new ArffSaver();
 		s.setInstances(dados);
 		try {
-			s.setFile(new File(resultado.getElementoGrafo() + "-" + resultado.getIjklm() + ".arff"));
+			s.setFile(new File(getNomeArquivoArff(resultado)));
 			s.writeBatch();
 		} catch (IOException e) {
 			logger.error("Erro ao tentar criar arquivo arff: ", e);
@@ -184,6 +184,18 @@ public class ConstrutorDeModelos {
 		resultado.setNumInstances((new Double(avaliador.numInstances())).intValue());
 
 		return listaResultado;
+	}
+	
+	private String getNomeArquivoArff(Resultado resultado){
+		StringBuffer sb = new StringBuffer();
+		sb.append("resultado/");
+		sb.append(resultado.getElementoGrafo());
+		sb.append("/");
+		sb.append(resultado.getElementoGrafo());
+		sb.append("-");
+		sb.append(resultado.getIjklm());
+		sb.append(".arff");
+		return sb.toString();
 	}
 
 }

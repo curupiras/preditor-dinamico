@@ -1,5 +1,6 @@
 package br.unb.cic.preditorhistorico.resultados;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -31,11 +32,18 @@ public class GravadorResultados {
 
 		try {
 			boolean arquivoExiste = Files.exists(Paths.get(nomeArquivo));
-			fileWriter = new FileWriter(nomeArquivo,true);
-			csvFilePrinter = new CSVPrinter(fileWriter, csvFileFormat);
+
 			if (!arquivoExiste) {
+				File file = new File(nomeArquivo);
+				file.getParentFile().mkdirs();
+				fileWriter = new FileWriter(nomeArquivo, true);
+				csvFilePrinter = new CSVPrinter(fileWriter, csvFileFormat);
 				csvFilePrinter.printRecord(CABECALHO);
+			} else {
+				fileWriter = new FileWriter(nomeArquivo, true);
+				csvFilePrinter = new CSVPrinter(fileWriter, csvFileFormat);
 			}
+
 			csvFilePrinter.printRecord(resultado);
 
 		} catch (Exception e) {
@@ -53,7 +61,9 @@ public class GravadorResultados {
 
 	private static String getNomeArquivo(ElementoGrafo elementoGrafo) {
 		StringBuffer sb = new StringBuffer();
-		sb.append("resultado-");
+		sb.append("resultado/");
+		sb.append(elementoGrafo.getNome());
+		sb.append("/resultado-");
 		sb.append(elementoGrafo.getNome());
 		sb.append(".csv");
 		return sb.toString();

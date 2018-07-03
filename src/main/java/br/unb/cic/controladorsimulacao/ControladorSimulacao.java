@@ -36,6 +36,7 @@ public class ControladorSimulacao {
 	private static final Logger logger = Logger.getLogger(ControladorSimulacao.class.getName());
 
 	private static final long TRES_HORAS = 3 * 60 * 60 * 1000;
+	private static final long TRINTA_DIAS = 30 * 24 * 60 * 60 * 1000;
 
 	private List<String> probabilidadeDeOcorrenciaDeEventoGrave = new ArrayList<>();
 	private List<String> probabilidadeDeOcorrenciaDeEventoModerado = new ArrayList<>();
@@ -111,7 +112,7 @@ public class ControladorSimulacao {
 
 	}
 
-	@Scheduled(fixedDelay = TRES_HORAS)
+	@Scheduled(fixedDelay = TRINTA_DIAS)
 	public void controlarSimulacao() {
 		Resultado resultado = new Resultado();
 
@@ -165,29 +166,29 @@ public class ControladorSimulacao {
 
 						for (int m = 0; m < 3; m++) {
 
-//							try {
-//								logger.info("Iniciando simulador");
-//								ProcessBuilder pb = new ProcessBuilder("start.bat");
-//								pb.redirectOutput(Redirect.appendTo(new File("simulador.log")));
-//								pb.redirectError(Redirect.appendTo(new File("simulador.log")));
-//								Process process = pb.start();
-//
-//								// TODO: mudar para 3 horas
-//								Thread.sleep(20000);
-//
-//								logger.info("Finalizando simulador");
-//								pb.redirectOutput(Redirect.appendTo(new File("lixo.log")));
-//								pb.redirectError(Redirect.appendTo(new File("lixo.log")));
-//								process.destroy();
-//								finalizarSimulador();
-//								Thread.sleep(5000);
-//							} catch (InterruptedException | IOException e) {
-//								logger.error("Execução do simulador interrompida:", e);
-//							}
+							try {
+								logger.info("Iniciando simulador");
+								ProcessBuilder pb = new ProcessBuilder("start.bat");
+								pb.redirectOutput(Redirect.appendTo(new File("simulador.log")));
+								pb.redirectError(Redirect.appendTo(new File("simulador.log")));
+								Process process = pb.start();
 
-							// TODO: na construção do modelo criar arquivos com instances
-							resultado.setTemposViagemAnteriores(Integer.parseInt(quantidadeDeTemposDeViagemAnteriores.get(m)));
-							resultado.setIjklm(""+i+j+k+l+m);
+								Thread.sleep(TRES_HORAS);
+
+								logger.info("Finalizando simulador");
+								pb.redirectOutput(Redirect.appendTo(new File("lixo.log")));
+								pb.redirectError(Redirect.appendTo(new File("lixo.log")));
+								process.destroy();
+								finalizarSimulador();
+								Thread.sleep(5000);
+							} catch (InterruptedException | IOException e) {
+								logger.error("Execução do simulador interrompida:", e);
+							}
+
+							resultado.setTemposViagemAnteriores(
+									Integer.parseInt(quantidadeDeTemposDeViagemAnteriores.get(m)));
+							resultado.setIjklm("" + i + j + k + l + m);
+							logger.info("Construção de modelos para ijklm=" + resultado.getIjklm());
 							construtorDeModelos.construirModelo(resultado);
 						}
 					}
