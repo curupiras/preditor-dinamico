@@ -113,54 +113,82 @@ public class ControladorSimulacao {
 
 	@Scheduled(fixedDelay = TRES_HORAS)
 	public void controlarSimulacao() {
+		Resultado resultado = new Resultado();
 
 		for (int i = 0; i < 3; i++) {
 			alterarPropriedade("simulador.probabilidadeDeOcorrenciaDeEventoGrave",
 					probabilidadeDeOcorrenciaDeEventoGrave.get(i));
+			resultado.setProbabilidadeEventoGrave(Double.parseDouble(probabilidadeDeOcorrenciaDeEventoGrave.get(i)));
+
 			alterarPropriedade("simulador.probabilidadeDeOcorrenciaDeEventoModerado",
 					probabilidadeDeOcorrenciaDeEventoModerado.get(i));
+			resultado.setProbabilidadeEventoModerado(
+					Double.parseDouble(probabilidadeDeOcorrenciaDeEventoModerado.get(i)));
+
 			alterarPropriedade("simulador.probabilidadeDeOcorrenciaDeEventoLeve",
 					probabilidadeDeOcorrenciaDeEventoLeve.get(i));
+			resultado.setProbabilidadeEventoLeve(Double.parseDouble(probabilidadeDeOcorrenciaDeEventoLeve.get(i)));
 
 			for (int j = 0; j < 3; j++) {
 				alterarPropriedade("simulador.fatorDeCorrecaoLeve", fatorDeCorrecaoLeve.get(j));
+				resultado.setFatorCorrecaoLeve(Double.parseDouble(fatorDeCorrecaoLeve.get(j)));
+
 				alterarPropriedade("simulador.fatorDeCorrecaoModerado", fatorDeCorrecaoModerado.get(j));
+				resultado.setFatorCorrecaoModerado(Double.parseDouble(fatorDeCorrecaoModerado.get(j)));
+
 				alterarPropriedade("simulador.fatorDeCorrecaoGrave", fatorDeCorrecaoGrave.get(j));
+				resultado.setFatorCorrecaoGrave(Double.parseDouble(fatorDeCorrecaoGrave.get(j)));
+
 				alterarPropriedade("simulador.fatorDeCorrecaoHorarioDePico", fatorDeCorrecaoHorarioDePico.get(j));
+				resultado.setFatorCorrecaoHorario(Double.parseDouble(fatorDeCorrecaoHorarioDePico.get(j)));
 
 				for (int k = 0; k < 3; k++) {
 					alterarPropriedade("simulador.fatorDeInfluenciaLeve", fatorDeInfluenciaLeve.get(k));
+					resultado.setFatorInfluenciaLeve(Double.parseDouble(fatorDeInfluenciaLeve.get(k)));
+
 					alterarPropriedade("simulador.fatorDeInfluenciaModerado", fatorDeInfluenciaModerado.get(k));
+					resultado.setFatorInfluenciaModerado(Double.parseDouble(fatorDeInfluenciaModerado.get(k)));
+
 					alterarPropriedade("simulador.fatorDeInfluenciaForte", fatorDeInfluenciaForte.get(k));
+					resultado.setFatorInfluenciaForte(Double.parseDouble(fatorDeInfluenciaForte.get(k)));
 
 					for (int l = 0; l < 3; l++) {
 						alterarPropriedade("simulador.fatorDeOscilacaoDoAtrasoDesvioPadrao",
 								fatorDeOscilacaoDoAtrasoDesvioPadrao.get(l));
+						resultado.setFatorOscilacaoAtraso(
+								Double.parseDouble(fatorDeOscilacaoDoAtrasoDesvioPadrao.get(l)));
+
 						alterarPropriedade("simulador.fatorDeOscilacaoDaVelocidadeDesvioPadrao",
 								fatorDeOscilacaoDaVelocidadeDesvioPadrao.get(l));
+						resultado.setFatorOscilacaoVelocidade(
+								Double.parseDouble(fatorDeOscilacaoDaVelocidadeDesvioPadrao.get(l)));
 
 						for (int m = 0; m < 3; m++) {
 
-							try {
-								logger.info("Iniciando simulador");
-								ProcessBuilder pb = new ProcessBuilder("start.bat");
-								pb.redirectOutput(Redirect.appendTo(new File("simulador.log")));
-								pb.redirectError(Redirect.appendTo(new File("simulador.log")));
-								Process process = pb.start();
+//							try {
+//								logger.info("Iniciando simulador");
+//								ProcessBuilder pb = new ProcessBuilder("start.bat");
+//								pb.redirectOutput(Redirect.appendTo(new File("simulador.log")));
+//								pb.redirectError(Redirect.appendTo(new File("simulador.log")));
+//								Process process = pb.start();
+//
+//								// TODO: mudar para 3 horas
+//								Thread.sleep(20000);
+//
+//								logger.info("Finalizando simulador");
+//								pb.redirectOutput(Redirect.appendTo(new File("lixo.log")));
+//								pb.redirectError(Redirect.appendTo(new File("lixo.log")));
+//								process.destroy();
+//								finalizarSimulador();
+//								Thread.sleep(5000);
+//							} catch (InterruptedException | IOException e) {
+//								logger.error("Execução do simulador interrompida:", e);
+//							}
 
-								//TODO: mudar para 3 horas
-								Thread.sleep(5000);
-
-								logger.info("Finalizando simulador");
-								process.destroy();
-								finalizarSimulador();
-							} catch (InterruptedException | IOException e) {
-								logger.error("Execução do simulador interrompida:", e);
-							}
-							
-							//TODO: na construção do modelo guarar as propriedades
-							construtorDeModelos
-									.construirModelo(Integer.parseInt(quantidadeDeTemposDeViagemAnteriores.get(m)));
+							// TODO: na construção do modelo criar arquivos com instances
+							resultado.setTemposViagemAnteriores(Integer.parseInt(quantidadeDeTemposDeViagemAnteriores.get(m)));
+							resultado.setIjklm(""+i+j+k+l+m);
+							construtorDeModelos.construirModelo(resultado);
 						}
 					}
 				}

@@ -1,6 +1,9 @@
 package br.unb.cic.preditorhistorico;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
@@ -9,19 +12,22 @@ import javax.annotation.PostConstruct;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import br.unb.cic.controladorsimulacao.Resultado;
+import br.unb.cic.controladorsimulacao.ResultadoRepository;
 import br.unb.cic.extrator.dominio.ElementoGrafo;
 import br.unb.cic.extrator.dominio.arco.Arco;
 import br.unb.cic.extrator.dominio.arco.ArcoRepository;
 import br.unb.cic.extrator.dominio.no.No;
 import br.unb.cic.extrator.dominio.no.NoRepository;
+import br.unb.cic.extrator.dominio.tempoviagem.TempoViagemRepository;
 import br.unb.cic.preditorhistorico.resultados.GravadorResultados;
 import weka.classifiers.Evaluation;
 import weka.classifiers.functions.SMOreg;
 import weka.core.Instances;
 import weka.core.Utils;
+import weka.core.converters.ArffSaver;
 import weka.filters.Filter;
 import weka.filters.unsupervised.instance.RemovePercentage;
 
@@ -52,7 +58,11 @@ public class ConstrutorDeModelos {
 	@Autowired
 	private GravadorResultados gravadorResultados;
 
-	private static final int UM_DIA = 86400000;
+	@Autowired
+	private ResultadoRepository resultadoRepository;
+
+	@Autowired
+	private TempoViagemRepository tempoViagemRepository;
 
 	private List<Arco> arcos;
 	private List<No> nos;
@@ -65,29 +75,33 @@ public class ConstrutorDeModelos {
 		this.nos = noRepository.findAllByOrderByIdAsc();
 	}
 
-//	@Scheduled(initialDelay = 0, fixedRate = UM_DIA)
-	public void construirModelo(int quantidadeDeTemposDeViagemAnteriores) {
+	// @Scheduled(initialDelay = 0, fixedRate = 86400000)
+	public void construirModelo(Resultado resultado) {
 		for (Arco arco : arcos) {
 			logger.info("Iniciando construção do Modelo para o arco " + arco.getNome());
-			construirModelo(arco, quantidadeDeTemposDeViagemAnteriores);
+			construirModelo(arco, resultado);
 			logger.info("Fim da construção do Modelo para o arco " + arco.getNome());
 		}
 
 		for (No no : nos) {
 			logger.info("Iniciando construção do Modelo para o no " + no.getNome());
-			construirModelo(no, quantidadeDeTemposDeViagemAnteriores);
+			construirModelo(no, resultado);
 			logger.info("Fim da construção do Modelo para o no " + no.getNome());
 		}
 	}
 
-	private void construirModelo(ElementoGrafo elementoGrafo, int quantidadeDeTemposDeViagemAnteriores) {
+	private void construirModelo(ElementoGrafo elementoGrafo, Resultado resultado) {
 		try {
 
-			Instances dados = geradorDeInstances.getInstancesFromDB(elementoGrafo, quantidadeDeTemposDeViagemAnteriores);
+			resultado.setId(0);
+			resultado.setElementoGrafo(elementoGrafo.getNome());
+
+			Instances dados = geradorDeInstances.getInstancesFromDB(elementoGrafo,
+					resultado.getTemposViagemAnteriores());
 			// dados.randomize(new Random(42));
 			dados.setClassIndex(0);
 
-			//TODO: passar o objeto SMOreg como parametro assim como os Options
+			// TODO: passar o objeto SMOreg como parametro assim como os Options
 			SMOreg classificador = new SMOreg();
 			classificador.setOptions(Utils.splitOptions(
 					"-C 1.0 -N 0 -I \"weka.classifiers.functions.supportVector.RegSMOImproved -T 0.001 -V -P 1.0E-12 -L 0.001 -W 1\" -K \"weka.classifiers.functions.supportVector.PolyKernel -E 1.0 -C 250007\""));
@@ -123,8 +137,12 @@ public class ConstrutorDeModelos {
 			}
 
 			if (avaliador != null) {
-				List<String> resultado = getResultado(avaliador);
-				gravadorResultados.escreverResultado(elementoGrafo, resultado);
+				List<String> listaResultado = getResultado(avaliador, resultado);
+				gravadorResultados.escreverResultado(elementoGrafo, listaResultado);
+				resultado.setDatahora(new Date());
+				tempoViagemRepository.updateProcessado(resultado.getElementoGrafo());
+				resultadoRepository.save(resultado);
+				criarArff(dados, resultado);
 				System.out.println(avaliador.toSummaryString("\nResults\n======\n", false));
 			}
 
@@ -133,15 +151,39 @@ public class ConstrutorDeModelos {
 		}
 	}
 
-	private List<String> getResultado(Evaluation avaliador) throws Exception {
-		List<String> resultado = new ArrayList<>();
-		resultado.add(Double.toString(avaliador.correlationCoefficient()));
-		resultado.add(Double.toString(avaliador.meanAbsoluteError()));
-		resultado.add(Double.toString(avaliador.rootMeanSquaredError()));
-		resultado.add(Double.toString(avaliador.relativeAbsoluteError()));
-		resultado.add(Double.toString(avaliador.rootRelativeSquaredError()));
-		resultado.add(Double.toString(avaliador.numInstances()));
-		return resultado;
+	private void criarArff(Instances dados, Resultado resultado) {
+		ArffSaver s = new ArffSaver();
+		s.setInstances(dados);
+		try {
+			s.setFile(new File(resultado.getElementoGrafo() + "-" + resultado.getIjklm() + ".arff"));
+			s.writeBatch();
+		} catch (IOException e) {
+			logger.error("Erro ao tentar criar arquivo arff: ", e);
+		}
+	}
+
+	private List<String> getResultado(Evaluation avaliador, Resultado resultado) throws Exception {
+		List<String> listaResultado = new ArrayList<>();
+
+		listaResultado.add(Double.toString(avaliador.correlationCoefficient()));
+		resultado.setCoeficienteCorrelacao(avaliador.correlationCoefficient());
+
+		listaResultado.add(Double.toString(avaliador.meanAbsoluteError()));
+		resultado.setMeanAbsoluteError(avaliador.meanAbsoluteError());
+
+		listaResultado.add(Double.toString(avaliador.rootMeanSquaredError()));
+		resultado.setRootMeanSquaredError(avaliador.rootMeanSquaredError());
+
+		listaResultado.add(Double.toString(avaliador.relativeAbsoluteError()));
+		resultado.setRelativeAbsoluteArror(avaliador.relativeAbsoluteError());
+
+		listaResultado.add(Double.toString(avaliador.rootRelativeSquaredError()));
+		resultado.setRootRelativeSquaredError(avaliador.rootRelativeSquaredError());
+
+		listaResultado.add(Double.toString(avaliador.numInstances()));
+		resultado.setNumInstances((new Double(avaliador.numInstances())).intValue());
+
+		return listaResultado;
 	}
 
 }

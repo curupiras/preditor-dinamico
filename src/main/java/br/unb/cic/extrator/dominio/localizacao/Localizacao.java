@@ -24,7 +24,7 @@ import com.vividsolutions.jts.geom.Point;
 import br.unb.cic.extrator.dominio.ElementoGrafo;
 
 @Entity
-@Table(name = "localizacao_preditor")
+@Table(name = "posicao")
 public class Localizacao {
 
 	private static final Log logger = LogFactory.getLog(Localizacao.class);

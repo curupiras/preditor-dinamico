@@ -11,7 +11,7 @@ import javax.persistence.Table;
 import org.hibernate.annotations.GenericGenerator;
 
 @Entity
-@Table(name = "tempo_viagem_preditor")
+@Table(name = "tempo_viagem_simulador")
 public class TempoViagem {
 
 	@Id
@@ -19,7 +19,7 @@ public class TempoViagem {
 	@GenericGenerator(name = "increment", strategy = "increment")
 	private long id;
 
-	public TempoViagem(Date dataHora, String nome, Long tempo, String onibus) {
+	public TempoViagem(Date dataHora, String nome, double tempo, String onibus) {
 		super();
 		this.dataHora = dataHora;
 		this.nome = nome;
@@ -37,10 +37,13 @@ public class TempoViagem {
 	private String nome;
 
 	@Column(name = "tempo")
-	private Long tempo;
+	private double tempo;
 
 	@Column(name = "onibus")
 	private String onibus;
+
+	@Column(name = "processado")
+	private boolean processado;
 
 	public long getId() {
 		return id;
@@ -66,11 +69,11 @@ public class TempoViagem {
 		this.nome = nome;
 	}
 
-	public Long getTempo() {
+	public double getTempo() {
 		return tempo;
 	}
 
-	public void setTempo(Long tempo) {
+	public void setTempo(double tempo) {
 		this.tempo = tempo;
 	}
 
@@ -80,6 +83,14 @@ public class TempoViagem {
 
 	public void setOnibus(String onibus) {
 		this.onibus = onibus;
+	}
+
+	public boolean isProcessado() {
+		return processado;
+	}
+
+	public void setProcessado(boolean processado) {
+		this.processado = processado;
 	}
 
 }

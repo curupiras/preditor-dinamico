@@ -88,12 +88,12 @@ public class GeradorDeInstances {
 
 	private void popularTabelaInstance(ElementoGrafo elementoGrafo) {
 		instanceRepository.deleteAll();
-		List<TempoViagem> temposDeViagem = tempoViagemRepository.findByNomeAndTempoNotNullOrderByDataHoraDesc(elementoGrafo.getNome());
+		List<TempoViagem> temposDeViagem = tempoViagemRepository.findByNomeAndProcessadoAndTempoNotNullOrderByDataHoraDesc(elementoGrafo.getNome(), false);
 		for (int i = 0; i < temposDeViagem.size(); i++) {
 			TempoViagem tempoDeViagem = temposDeViagem.get(i);
 
 			long idTempoViagem = tempoDeViagem.getId();
-			long tempo = tempoDeViagem.getTempo();
+			double tempo = tempoDeViagem.getTempo();
 			double periodoDoDia = getPeriodoDoDia(tempoDeViagem);
 			int diaDaSemana = getDiaDaSemana(tempoDeViagem);
 			List<Double> temposDeViagemAnteriores = getTemposDeViagemAnteriores(temposDeViagem, i);
