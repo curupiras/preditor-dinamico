@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -22,6 +23,8 @@ import weka.experiment.InstanceQuery;
 
 @Component
 public class GeradorDeInstances {
+	
+	private static final Logger logger = Logger.getLogger(GeradorDeInstances.class.getName());
 
 	private static final double HORAS_PARA_SEGUNDOS = 3600;
 	private static final double MINUTOS_PARA_SEGUNDOS = 60;
@@ -65,7 +68,9 @@ public class GeradorDeInstances {
 
 	public Instances getInstancesFromDB(ElementoGrafo elementoGrafo, int quantidadeDeTemposDeViagemAnteriores) throws Exception {
 		this.quantidadeDeTemposDeViagemAnteriores = quantidadeDeTemposDeViagemAnteriores;
+		logger.info("Popular tabela de instances inicio");
 		popularTabelaInstance(elementoGrafo);
+		logger.info("Popular tabela de instances fim");
 		InstanceQuery query = new InstanceQuery();
 		query.setUsername(usuario);
 		query.setPassword(senha);

@@ -16,7 +16,6 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import br.unb.cic.preditorhistorico.ConstrutorDeModelos;
@@ -30,13 +29,16 @@ public class ControladorSimulacao {
 	@Value("${preditor.stringExecucaoSimulador}")
 	private String stringExecucaoSimulador;
 
+	@Value("${preditor.tempoExecucaoSimulador}")
+	private long tempoExecucaoSimulador;
+
 	@Autowired
 	private ConstrutorDeModelos construtorDeModelos;
 
 	private static final Logger logger = Logger.getLogger(ControladorSimulacao.class.getName());
 
-	private static final long TRES_HORAS = 3 * 60 * 60 * 1000;
-	private static final long TRINTA_DIAS = 30 * 24 * 60 * 60 * 1000;
+	// private static final long TRES_HORAS = 3 * 60 * 60 * 1000;
+	// private static final long TRINTA_DIAS = 30 * 24 * 60 * 60 * 1000;
 
 	private List<String> probabilidadeDeOcorrenciaDeEventoGrave = new ArrayList<>();
 	private List<String> probabilidadeDeOcorrenciaDeEventoModerado = new ArrayList<>();
@@ -58,6 +60,7 @@ public class ControladorSimulacao {
 
 	@PostConstruct
 	public void init() {
+
 		probabilidadeDeOcorrenciaDeEventoGrave.add("0.0000");
 		probabilidadeDeOcorrenciaDeEventoGrave.add("0.0005");
 		probabilidadeDeOcorrenciaDeEventoGrave.add("0.0010");
@@ -110,9 +113,10 @@ public class ControladorSimulacao {
 		quantidadeDeTemposDeViagemAnteriores.add("4");
 		quantidadeDeTemposDeViagemAnteriores.add("2");
 
+		controlarSimulacao();
 	}
 
-	@Scheduled(fixedDelay = TRINTA_DIAS)
+	// @Scheduled(fixedDelay = TRES_HORAS)
 	public void controlarSimulacao() {
 		Resultado resultado = new Resultado();
 
@@ -168,12 +172,12 @@ public class ControladorSimulacao {
 
 							try {
 								logger.info("Iniciando simulador");
-								ProcessBuilder pb = new ProcessBuilder("start.bat");
+								ProcessBuilder pb = new ProcessBuilder(stringExecucaoSimulador);
 								pb.redirectOutput(Redirect.appendTo(new File("simulador.log")));
 								pb.redirectError(Redirect.appendTo(new File("simulador.log")));
 								Process process = pb.start();
 
-								Thread.sleep(TRES_HORAS);
+								Thread.sleep(tempoExecucaoSimulador);
 
 								logger.info("Finalizando simulador");
 								pb.redirectOutput(Redirect.appendTo(new File("lixo.log")));

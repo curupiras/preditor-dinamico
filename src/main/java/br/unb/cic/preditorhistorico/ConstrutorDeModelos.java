@@ -26,7 +26,6 @@ import br.unb.cic.preditorhistorico.resultados.GravadorResultados;
 import weka.classifiers.Evaluation;
 import weka.classifiers.functions.SMOreg;
 import weka.core.Instances;
-import weka.core.Utils;
 import weka.core.converters.ArffSaver;
 import weka.filters.Filter;
 import weka.filters.unsupervised.instance.RemovePercentage;
@@ -103,16 +102,21 @@ public class ConstrutorDeModelos {
 
 			// TODO: passar o objeto SMOreg como parametro assim como os Options
 			SMOreg classificador = new SMOreg();
-			classificador.setOptions(Utils.splitOptions(
-					"-C 1.0 -N 0 -I \"weka.classifiers.functions.supportVector.RegSMOImproved -T 0.001 -V -P 1.0E-12 -L 0.001 -W 1\" -K \"weka.classifiers.functions.supportVector.PolyKernel -E 1.0 -C 250007\""));
+//			classificador.setOptions(Utils.splitOptions(
+//					"-C 1.0 -N 0 -I \"weka.classifiers.functions.supportVector.RegSMOImproved -T 0.001 -V -P 1.0E-12 -L 0.001 -W 1\" -K \"weka.classifiers.functions.supportVector.PolyKernel -E 1.0 -C 250007\""));
 
 			Evaluation avaliador = null;
 
 			if (avaliacaoCruzada) {
+				logger.info("Inicio do buildClassifier");
 				classificador.buildClassifier(dados);
+				logger.info("Fim do buildClassifier");
 
 				avaliador = new Evaluation(dados);
+				
+				logger.info("Inicio do crossValidateModel");
 				avaliador.crossValidateModel(classificador, dados, numFolds, new Random(1));
+				logger.info("Fim do crossValidateModel");
 			}
 
 			if (treinoETeste) {
