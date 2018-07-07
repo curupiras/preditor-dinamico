@@ -87,6 +87,27 @@ public class Resultado {
 	@Transient
 	private String ijklm;
 
+	public Resultado() {
+		super();
+	}
+	
+	public Resultado(Parametros parametros) {
+		this.probabilidadeEventoGrave = parametros.getProbabilidadeEventoGrave();
+		this.probabilidadeEventoModerado = parametros.getProbabilidadeEventoModerado();
+		this.probabilidadeEventoLeve = parametros.getProbabilidadeEventoLeve();
+		this.fatorCorrecaoLeve = parametros.getFatorCorrecaoLeve();
+		this.fatorCorrecaoModerado = parametros.getFatorCorrecaoModerado();
+		this.fatorCorrecaoGrave = parametros.getFatorCorrecaoGrave();
+		this.fatorCorrecaoHorario = parametros.getFatorCorrecaoHorario();
+		this.fatorInfluenciaLeve = parametros.getFatorInfluenciaLeve();
+		this.fatorInfluenciaModerado = parametros.getFatorInfluenciaModerado();
+		this.fatorInfluenciaForte = parametros.getFatorInfluenciaForte();
+		this.fatorOscilacaoAtraso = parametros.getFatorOscilacaoAtraso();
+		this.fatorOscilacaoVelocidade = parametros.getFatorOscilacaoVelocidade();
+		this.temposViagemAnteriores = parametros.getTemposViagemAnteriores();
+		this.ijklm = parametros.getIjklm();
+	}
+
 	public long getId() {
 		return id;
 	}

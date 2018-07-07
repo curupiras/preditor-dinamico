@@ -118,54 +118,54 @@ public class ControladorSimulacao {
 
 	// @Scheduled(fixedDelay = TRES_HORAS)
 	public void controlarSimulacao() {
-		Resultado resultado = new Resultado();
+		Parametros parametros = new Parametros();
 
 		for (int i = 0; i < 3; i++) {
 			alterarPropriedade("simulador.probabilidadeDeOcorrenciaDeEventoGrave",
 					probabilidadeDeOcorrenciaDeEventoGrave.get(i));
-			resultado.setProbabilidadeEventoGrave(Double.parseDouble(probabilidadeDeOcorrenciaDeEventoGrave.get(i)));
+			parametros.setProbabilidadeEventoGrave(Double.parseDouble(probabilidadeDeOcorrenciaDeEventoGrave.get(i)));
 
 			alterarPropriedade("simulador.probabilidadeDeOcorrenciaDeEventoModerado",
 					probabilidadeDeOcorrenciaDeEventoModerado.get(i));
-			resultado.setProbabilidadeEventoModerado(
+			parametros.setProbabilidadeEventoModerado(
 					Double.parseDouble(probabilidadeDeOcorrenciaDeEventoModerado.get(i)));
 
 			alterarPropriedade("simulador.probabilidadeDeOcorrenciaDeEventoLeve",
 					probabilidadeDeOcorrenciaDeEventoLeve.get(i));
-			resultado.setProbabilidadeEventoLeve(Double.parseDouble(probabilidadeDeOcorrenciaDeEventoLeve.get(i)));
+			parametros.setProbabilidadeEventoLeve(Double.parseDouble(probabilidadeDeOcorrenciaDeEventoLeve.get(i)));
 
 			for (int j = 0; j < 3; j++) {
 				alterarPropriedade("simulador.fatorDeCorrecaoLeve", fatorDeCorrecaoLeve.get(j));
-				resultado.setFatorCorrecaoLeve(Double.parseDouble(fatorDeCorrecaoLeve.get(j)));
+				parametros.setFatorCorrecaoLeve(Double.parseDouble(fatorDeCorrecaoLeve.get(j)));
 
 				alterarPropriedade("simulador.fatorDeCorrecaoModerado", fatorDeCorrecaoModerado.get(j));
-				resultado.setFatorCorrecaoModerado(Double.parseDouble(fatorDeCorrecaoModerado.get(j)));
+				parametros.setFatorCorrecaoModerado(Double.parseDouble(fatorDeCorrecaoModerado.get(j)));
 
 				alterarPropriedade("simulador.fatorDeCorrecaoGrave", fatorDeCorrecaoGrave.get(j));
-				resultado.setFatorCorrecaoGrave(Double.parseDouble(fatorDeCorrecaoGrave.get(j)));
+				parametros.setFatorCorrecaoGrave(Double.parseDouble(fatorDeCorrecaoGrave.get(j)));
 
 				alterarPropriedade("simulador.fatorDeCorrecaoHorarioDePico", fatorDeCorrecaoHorarioDePico.get(j));
-				resultado.setFatorCorrecaoHorario(Double.parseDouble(fatorDeCorrecaoHorarioDePico.get(j)));
+				parametros.setFatorCorrecaoHorario(Double.parseDouble(fatorDeCorrecaoHorarioDePico.get(j)));
 
 				for (int k = 0; k < 3; k++) {
 					alterarPropriedade("simulador.fatorDeInfluenciaLeve", fatorDeInfluenciaLeve.get(k));
-					resultado.setFatorInfluenciaLeve(Double.parseDouble(fatorDeInfluenciaLeve.get(k)));
+					parametros.setFatorInfluenciaLeve(Double.parseDouble(fatorDeInfluenciaLeve.get(k)));
 
 					alterarPropriedade("simulador.fatorDeInfluenciaModerado", fatorDeInfluenciaModerado.get(k));
-					resultado.setFatorInfluenciaModerado(Double.parseDouble(fatorDeInfluenciaModerado.get(k)));
+					parametros.setFatorInfluenciaModerado(Double.parseDouble(fatorDeInfluenciaModerado.get(k)));
 
 					alterarPropriedade("simulador.fatorDeInfluenciaForte", fatorDeInfluenciaForte.get(k));
-					resultado.setFatorInfluenciaForte(Double.parseDouble(fatorDeInfluenciaForte.get(k)));
+					parametros.setFatorInfluenciaForte(Double.parseDouble(fatorDeInfluenciaForte.get(k)));
 
 					for (int l = 0; l < 3; l++) {
 						alterarPropriedade("simulador.fatorDeOscilacaoDoAtrasoDesvioPadrao",
 								fatorDeOscilacaoDoAtrasoDesvioPadrao.get(l));
-						resultado.setFatorOscilacaoAtraso(
+						parametros.setFatorOscilacaoAtraso(
 								Double.parseDouble(fatorDeOscilacaoDoAtrasoDesvioPadrao.get(l)));
 
 						alterarPropriedade("simulador.fatorDeOscilacaoDaVelocidadeDesvioPadrao",
 								fatorDeOscilacaoDaVelocidadeDesvioPadrao.get(l));
-						resultado.setFatorOscilacaoVelocidade(
+						parametros.setFatorOscilacaoVelocidade(
 								Double.parseDouble(fatorDeOscilacaoDaVelocidadeDesvioPadrao.get(l)));
 
 						for (int m = 0; m < 3; m++) {
@@ -189,11 +189,11 @@ public class ControladorSimulacao {
 								logger.error("Execução do simulador interrompida:", e);
 							}
 
-							resultado.setTemposViagemAnteriores(
+							parametros.setTemposViagemAnteriores(
 									Integer.parseInt(quantidadeDeTemposDeViagemAnteriores.get(m)));
-							resultado.setIjklm("" + i + j + k + l + m);
-							logger.info("Construção de modelos para ijklm=" + resultado.getIjklm());
-							construtorDeModelos.construirModelo(resultado);
+							parametros.setIjklm("" + i + j + k + l + m);
+							logger.info("Construção de modelos para ijklm=" + parametros.getIjklm());
+							construtorDeModelos.construirModelo(parametros);
 						}
 					}
 				}

@@ -1,9 +1,11 @@
 package br.unb.cic.preditor.dominio.instance;
 
+import org.springframework.context.annotation.Scope;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface InstanceRepository extends JpaRepository<Instance, Long> {
+@Scope("prototype")
+public interface InstanceRepository extends JpaRepository<Instancia, Long> {
 
-	Instance findById(long id);
+	Instancia findById(long id);
 
 }

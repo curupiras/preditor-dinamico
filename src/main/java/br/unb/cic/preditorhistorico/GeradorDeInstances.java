@@ -15,15 +15,18 @@ import br.unb.cic.extrator.dominio.localizacao.Localizacao;
 import br.unb.cic.extrator.dominio.localizacao.LocalizacaoRepository;
 import br.unb.cic.extrator.dominio.tempoviagem.TempoViagem;
 import br.unb.cic.extrator.dominio.tempoviagem.TempoViagemRepository;
-import br.unb.cic.preditor.dominio.instance.Instance;
 import br.unb.cic.preditor.dominio.instance.InstanceRepository;
+import br.unb.cic.preditor.dominio.instance.Instancia;
 import br.unb.cic.preditorhistorico.util.Util;
+import weka.core.Attribute;
+import weka.core.DenseInstance;
+import weka.core.Instance;
 import weka.core.Instances;
 import weka.experiment.InstanceQuery;
 
 @Component
 public class GeradorDeInstances {
-	
+
 	private static final Logger logger = Logger.getLogger(GeradorDeInstances.class.getName());
 
 	private static final double HORAS_PARA_SEGUNDOS = 3600;
@@ -37,9 +40,6 @@ public class GeradorDeInstances {
 
 	@Value("${spring.datasource.url}")
 	private String url;
-
-//	@Value("${preditor.quantidadeDeTemposDeViagemAnteriores}")
-	private int quantidadeDeTemposDeViagemAnteriores;
 
 	@Value("${preditor.quantidadeDeAmostrasParaCalculoDaVelocidadeMedia}")
 	private int quantidadeDeAmostrasParaCalculoDaVelocidadeMedia;
@@ -66,21 +66,63 @@ public class GeradorDeInstances {
 		return query.retrieveInstances();
 	}
 
-	public Instances getInstancesFromDB(ElementoGrafo elementoGrafo, int quantidadeDeTemposDeViagemAnteriores) throws Exception {
-		this.quantidadeDeTemposDeViagemAnteriores = quantidadeDeTemposDeViagemAnteriores;
+	public synchronized Instances getInstancesFromDB(ElementoGrafo elementoGrafo,
+			int quantidadeDeTemposDeViagemAnteriores) throws Exception {
+		logger.info("Gerar instances de : " + elementoGrafo.getNome());
 		logger.info("Popular tabela de instances inicio");
-		popularTabelaInstance(elementoGrafo);
+		popularTabelaInstance(elementoGrafo, quantidadeDeTemposDeViagemAnteriores);
 		logger.info("Popular tabela de instances fim");
 		InstanceQuery query = new InstanceQuery();
 		query.setUsername(usuario);
 		query.setPassword(senha);
 		query.setDatabaseURL(url);
-		query.setQuery(getQuery());
+		query.setQuery(getQuery(quantidadeDeTemposDeViagemAnteriores));
 		query.setSparseData(true);
+		logger.info("Fim gerar instances de : " + elementoGrafo.getNome());
 		return query.retrieveInstances();
 	}
 
-	private String getQuery() {
+	public Instances getInstances(ElementoGrafo elementoGrafo, int quantidadeDeTemposDeViagemAnteriores)
+			throws Exception {
+
+		logger.info("Gerar instances de : " + elementoGrafo.getNome());
+		List<Instancia> instancias = popularInstances(elementoGrafo, quantidadeDeTemposDeViagemAnteriores);
+
+		ArrayList<Attribute> attributes = new ArrayList<>();
+		attributes.add(new Attribute("tempo_de_viagem"));
+		attributes.add(new Attribute("periodo_do_dia"));
+		attributes.add(new Attribute("dia_da_semana"));
+		attributes.add(new Attribute("velocidade_media"));
+		attributes.add(new Attribute("tempo_de_viagem_1"));
+		attributes.add(new Attribute("tempo_de_viagem_2"));
+		attributes.add(new Attribute("tempo_de_viagem_3"));
+		attributes.add(new Attribute("tempo_de_viagem_4"));
+		attributes.add(new Attribute("tempo_de_viagem_5"));
+		attributes.add(new Attribute("tempo_de_viagem_6"));
+
+		Instances instances = new Instances("instance_preditor", attributes, instancias.size());
+
+		for (Instancia instancia : instancias) {
+			Instance instance = new DenseInstance(attributes.size());
+			instance.setValue(0, instancia.getTempoViagem());
+			instance.setValue(1, instancia.getPeriodoDoDia());
+			instance.setValue(2, instancia.getDiaDaSemana());
+			instance.setValue(3, instancia.getVelocidadeMedia());
+			instance.setValue(4, instancia.getTempoViagem1());
+			instance.setValue(5, instancia.getTempoViagem2());
+			instance.setValue(6, instancia.getTempoViagem3());
+			instance.setValue(7, instancia.getTempoViagem4());
+			instance.setValue(8, instancia.getTempoViagem5());
+			instance.setValue(9, instancia.getTempoViagem6());
+
+			instances.add(instance);
+		}
+
+		logger.info("Fim gerar instances de : " + elementoGrafo.getNome());
+		return instances;
+	}
+
+	private String getQuery(int quantidadeDeTemposDeViagemAnteriores) {
 		StringBuffer sb = new StringBuffer();
 		sb.append("select tempo_de_viagem, periodo_do_dia, dia_da_semana, velocidade_media");
 		for (int i = 0; i < quantidadeDeTemposDeViagemAnteriores; i++) {
@@ -91,9 +133,10 @@ public class GeradorDeInstances {
 		return sb.toString();
 	}
 
-	private void popularTabelaInstance(ElementoGrafo elementoGrafo) {
+	private void popularTabelaInstance(ElementoGrafo elementoGrafo, int quantidadeDeTemposDeViagemAnteriores) {
 		instanceRepository.deleteAll();
-		List<TempoViagem> temposDeViagem = tempoViagemRepository.findByNomeAndProcessadoAndTempoNotNullOrderByDataHoraDesc(elementoGrafo.getNome(), false);
+		List<TempoViagem> temposDeViagem = tempoViagemRepository
+				.findByNomeAndProcessadoAndTempoNotNullOrderByDataHoraDesc(elementoGrafo.getNome(), false);
 		for (int i = 0; i < temposDeViagem.size(); i++) {
 			TempoViagem tempoDeViagem = temposDeViagem.get(i);
 
@@ -101,10 +144,10 @@ public class GeradorDeInstances {
 			double tempo = tempoDeViagem.getTempo();
 			double periodoDoDia = getPeriodoDoDia(tempoDeViagem);
 			int diaDaSemana = getDiaDaSemana(tempoDeViagem);
-			List<Double> temposDeViagemAnteriores = getTemposDeViagemAnteriores(temposDeViagem, i);
+			List<Double> temposDeViagemAnteriores = getTemposDeViagemAnteriores(temposDeViagem, i, quantidadeDeTemposDeViagemAnteriores);
 			double velocidadeMedia = getVelocidadeMedia(tempoDeViagem);
 
-			Instance instance = new Instance();
+			Instancia instance = new Instancia();
 			instance.setIdTempoViagem(idTempoViagem);
 			instance.setTempoViagem(tempo);
 			instance.setPeriodoDoDia(periodoDoDia);
@@ -114,6 +157,36 @@ public class GeradorDeInstances {
 
 			instanceRepository.save(instance);
 		}
+
+	}
+
+	private List<Instancia> popularInstances(ElementoGrafo elementoGrafo, int quantidadeDeTemposDeViagemAnteriores) {
+		List<Instancia> instancias = new ArrayList<>();
+		List<TempoViagem> temposDeViagem = tempoViagemRepository
+				.findByNomeAndProcessadoAndTempoNotNullOrderByDataHoraDesc(elementoGrafo.getNome(), false);
+
+		for (int i = 0; i < temposDeViagem.size(); i++) {
+			TempoViagem tempoDeViagem = temposDeViagem.get(i);
+
+			long idTempoViagem = tempoDeViagem.getId();
+			double tempo = tempoDeViagem.getTempo();
+			double periodoDoDia = getPeriodoDoDia(tempoDeViagem);
+			int diaDaSemana = getDiaDaSemana(tempoDeViagem);
+			List<Double> temposDeViagemAnteriores = getTemposDeViagemAnteriores(temposDeViagem, i, quantidadeDeTemposDeViagemAnteriores);
+			double velocidadeMedia = getVelocidadeMedia(tempoDeViagem);
+
+			Instancia instancia = new Instancia();
+			instancia.setIdTempoViagem(idTempoViagem);
+			instancia.setTempoViagem(tempo);
+			instancia.setPeriodoDoDia(periodoDoDia);
+			instancia.setDiaDaSemana(diaDaSemana);
+			instancia.setTemposDeViagemAnteriores(temposDeViagemAnteriores);
+			instancia.setVelocidadeMedia(velocidadeMedia);
+
+			instancias.add(instancia);
+		}
+
+		return instancias;
 
 	}
 
@@ -151,7 +224,7 @@ public class GeradorDeInstances {
 		return localizacaoRepository.findTop1ByOnibusAndDataHoraOrderByDataHoraDesc(onibus, data);
 	}
 
-	private List<Double> getTemposDeViagemAnteriores(List<TempoViagem> temposDeViagem, int i) {
+	private List<Double> getTemposDeViagemAnteriores(List<TempoViagem> temposDeViagem, int i, int quantidadeDeTemposDeViagemAnteriores) {
 		List<Double> temposDeViagemAnteriores = new ArrayList<>();
 
 		for (int j = 1; j <= quantidadeDeTemposDeViagemAnteriores; j++) {

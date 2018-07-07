@@ -12,8 +12,6 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
-import br.unb.cic.extrator.dominio.ElementoGrafo;
-
 @Component
 public class GravadorResultados {
 
@@ -23,12 +21,12 @@ public class GravadorResultados {
 
 	private static final Logger logger = Logger.getLogger(GravadorResultados.class.getName());
 
-	public void escreverResultado(ElementoGrafo elementoGrafo, List<String> resultado) {
+	public void escreverResultado(List<String> resultado, String nomeElementoGrafo) {
 
 		FileWriter fileWriter = null;
 		CSVPrinter csvFilePrinter = null;
 		CSVFormat csvFileFormat = CSVFormat.DEFAULT.withRecordSeparator(SEPARADOR_DE_LINHAS);
-		String nomeArquivo = getNomeArquivo(elementoGrafo);
+		String nomeArquivo = getNomeArquivo(nomeElementoGrafo);
 
 		try {
 			boolean arquivoExiste = Files.exists(Paths.get(nomeArquivo));
@@ -59,12 +57,12 @@ public class GravadorResultados {
 		}
 	}
 
-	private static String getNomeArquivo(ElementoGrafo elementoGrafo) {
+	private static String getNomeArquivo(String nomeElementoGrafo) {
 		StringBuffer sb = new StringBuffer();
 		sb.append("resultado/");
-		sb.append(elementoGrafo.getNome());
+		sb.append(nomeElementoGrafo);
 		sb.append("/resultado-");
-		sb.append(elementoGrafo.getNome());
+		sb.append(nomeElementoGrafo);
 		sb.append(".csv");
 		return sb.toString();
 	}

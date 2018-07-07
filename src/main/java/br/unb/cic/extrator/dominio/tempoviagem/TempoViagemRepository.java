@@ -16,5 +16,10 @@ public interface TempoViagemRepository extends JpaRepository<TempoViagem, Long> 
 	@Transactional
 	@Query("update TempoViagem tempoViagem set tempoViagem.processado =  true where tempoViagem.nome = ?1")
 	void updateProcessado(String nome);
+	
+	@Modifying
+	@Transactional
+	@Query("update TempoViagem tempoViagem set tempoViagem.processado =  true")
+	void updateProcessado();
 
 }
