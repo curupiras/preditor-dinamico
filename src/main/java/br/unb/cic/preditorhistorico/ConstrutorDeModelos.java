@@ -76,7 +76,6 @@ public class ConstrutorDeModelos {
 				logger.error("Thread principal interrompida: ", e);
 			}
 			if (count == 0) {
-//				threadPoolTaskExecutor.shutdown();
 				tempoViagemRepository.updateProcessado();
 				resultados.flush();
 				break;

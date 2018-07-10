@@ -19,7 +19,7 @@ import br.unb.cic.controladorsimulacao.Resultados;
 import br.unb.cic.extrator.dominio.ElementoGrafo;
 import br.unb.cic.preditorhistorico.resultados.GravadorResultados;
 import weka.classifiers.Evaluation;
-import weka.classifiers.functions.SMOreg;
+import weka.classifiers.lazy.IBk;
 import weka.core.Instances;
 import weka.core.converters.ArffSaver;
 import weka.filters.Filter;
@@ -75,7 +75,8 @@ public class ConstruirModeloTask implements Runnable {
 			}
 
 			// TODO: passar o objeto SMOreg como parametro assim como os Options
-			SMOreg classificador = new SMOreg();
+			// SMOreg classificador = new SMOreg();
+			IBk classificador = new IBk(5);
 
 			Evaluation avaliador = null;
 
@@ -106,10 +107,14 @@ public class ConstruirModeloTask implements Runnable {
 				treino.setClassIndex(0);
 				teste.setClassIndex(0);
 
+				logger.info("Inicio do buildClassifier " + elementoGrafo.getNome());
 				classificador.buildClassifier(treino);
+				logger.info("Fim do buildClassifier " + elementoGrafo.getNome());
 
 				avaliador = new Evaluation(treino);
+				logger.info("Inicio do evaluateModel " + elementoGrafo.getNome());
 				avaliador.evaluateModel(classificador, teste);
+				logger.info("Fim do evaluateModel " + elementoGrafo.getNome());
 			}
 
 			if (avaliador != null) {
