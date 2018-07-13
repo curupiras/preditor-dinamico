@@ -14,7 +14,7 @@ public class ControladorExperimento {
 
 	private static final Logger logger = Logger.getLogger(ControladorExperimento.class.getName());
 
-	@PostConstruct
+//	@PostConstruct
 	public void init() {
 		controlarSimulacao();
 	}

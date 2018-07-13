@@ -221,7 +221,7 @@ public class GeradorDeInstances {
 	}
 
 	private Localizacao getUltimaLocalizacao(String onibus, Date data) {
-		return localizacaoRepository.findTop1ByOnibusAndDataHoraOrderByDataHoraDesc(onibus, data);
+		return localizacaoRepository.findTop1ByOnibusAndDataHoraLessThanEqualOrderByDataHoraDesc(onibus, data);
 	}
 
 	private List<Double> getTemposDeViagemAnteriores(List<TempoViagem> temposDeViagem, int i, int quantidadeDeTemposDeViagemAnteriores) {

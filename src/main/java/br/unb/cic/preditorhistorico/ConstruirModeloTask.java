@@ -60,19 +60,14 @@ public class ConstruirModeloTask implements Runnable {
 
 		logger.info("Inicio da construção do Modelo para o arco " + elementoGrafo.getNome());
 
+		Instances dados = null;
+		Resultado resultado = new Resultado(parametros);
+		resultado.setElementoGrafo(elementoGrafo.getNome());
+
 		try {
-			Resultado resultado = new Resultado(parametros);
-			resultado.setElementoGrafo(elementoGrafo.getNome());
 
-			Instances dados = null;
-
-			try {
-				dados = geradorDeInstances.getInstances(elementoGrafo, resultado.getTemposViagemAnteriores());
-				dados.setClassIndex(0);
-
-			} catch (Exception e) {
-				logger.error("Erro ao gerar instances para elemento: " + elementoGrafo.getNome(), e);
-			}
+			dados = geradorDeInstances.getInstances(elementoGrafo, resultado.getTemposViagemAnteriores());
+			dados.setClassIndex(0);
 
 			// TODO: passar o objeto SMOreg como parametro assim como os Options
 			// SMOreg classificador = new SMOreg();
@@ -122,13 +117,16 @@ public class ConstruirModeloTask implements Runnable {
 				gravadorResultados.escreverResultado(listaResultado, resultado.getElementoGrafo());
 				resultado.setDatahora(new Date());
 				resultados.add(resultado);
-				criarArff(dados, resultado);
 				// System.out.println(avaliador.toSummaryString("\nResults\n======\n",
 				// false));
 			}
 
 		} catch (Exception ex) {
 			logger.error("Erro na construção do modelo para: " + elementoGrafo.getNome(), ex);
+		} finally {
+			if(dados != null){
+				criarArff(dados, resultado);
+			}
 		}
 
 		logger.info("Fim da construção do Modelo para o arco " + elementoGrafo.getNome());

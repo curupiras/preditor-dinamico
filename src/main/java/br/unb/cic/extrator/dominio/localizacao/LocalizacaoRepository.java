@@ -18,7 +18,7 @@ public interface LocalizacaoRepository extends JpaRepository<Localizacao, Long> 
 	List<Localizacao> findTop3ByOnibusAndDataHoraLessThanOrderByDataHoraDesc(String onibus, Date dataHora);
 	List<Localizacao> findTop2ByOnibusAndDataHoraLessThanOrderByDataHoraDesc(String onibus, Date dataHora);
 	List<Localizacao> findTop1ByOnibusAndDataHoraLessThanOrderByDataHoraDesc(String onibus, Date dataHora);
-	Localizacao findTop1ByOnibusAndDataHoraOrderByDataHoraDesc(String onibus, Date dataHora);
+	Localizacao findTop1ByOnibusAndDataHoraLessThanEqualOrderByDataHoraDesc(String onibus, Date dataHora);
 	
 	@Query("select distinct onibus from Localizacao where processado = false")
 	List<String> findDistinctOnibus();
