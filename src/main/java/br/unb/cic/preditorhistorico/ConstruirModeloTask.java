@@ -71,7 +71,7 @@ public class ConstruirModeloTask implements Runnable {
 
 			// TODO: passar o objeto SMOreg como parametro assim como os Options
 			// SMOreg classificador = new SMOreg();
-			IBk classificador = new IBk(5);
+			IBk classificador = new IBk(4);
 
 			Evaluation avaliador = null;
 
