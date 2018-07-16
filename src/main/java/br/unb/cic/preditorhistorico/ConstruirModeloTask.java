@@ -43,6 +43,9 @@ public class ConstruirModeloTask implements Runnable {
 
 	@Value("${preditor.numeroDeFolds}")
 	private int numFolds;
+	
+	@Value("${preditor.k}")
+	private int k;
 
 	@Autowired
 	private GravadorResultados gravadorResultados;
@@ -71,7 +74,7 @@ public class ConstruirModeloTask implements Runnable {
 
 			// TODO: passar o objeto SMOreg como parametro assim como os Options
 			// SMOreg classificador = new SMOreg();
-			IBk classificador = new IBk(4);
+			IBk classificador = new IBk(k);
 
 			Evaluation avaliador = null;
 

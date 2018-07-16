@@ -31,6 +31,21 @@ public class ControladorSimulacao {
 
 	@Value("${preditor.tempoExecucaoSimulador}")
 	private long tempoExecucaoSimulador;
+	
+	@Value("${simulador.i}")
+	private int iInicial;
+	
+	@Value("${simulador.j}")
+	private int jInicial;
+	
+	@Value("${simulador.k}")
+	private int kInicial;
+	
+	@Value("${simulador.l}")
+	private int lInicial;
+	
+	@Value("${simulador.m}")
+	private int mInicial;
 
 	@Autowired
 	private ConstrutorDeModelos construtorDeModelos;
@@ -120,7 +135,7 @@ public class ControladorSimulacao {
 	public void controlarSimulacao() {
 		Parametros parametros = new Parametros();
 
-		for (int i = 0; i < 3; i++) {
+		for (int i = iInicial; i < 3; i++) {
 			alterarPropriedade("simulador.probabilidadeDeOcorrenciaDeEventoGrave",
 					probabilidadeDeOcorrenciaDeEventoGrave.get(i));
 			parametros.setProbabilidadeEventoGrave(Double.parseDouble(probabilidadeDeOcorrenciaDeEventoGrave.get(i)));
@@ -134,7 +149,7 @@ public class ControladorSimulacao {
 					probabilidadeDeOcorrenciaDeEventoLeve.get(i));
 			parametros.setProbabilidadeEventoLeve(Double.parseDouble(probabilidadeDeOcorrenciaDeEventoLeve.get(i)));
 
-			for (int j = 0; j < 3; j++) {
+			for (int j = jInicial; j < 3; j++) {
 				alterarPropriedade("simulador.fatorDeCorrecaoLeve", fatorDeCorrecaoLeve.get(j));
 				parametros.setFatorCorrecaoLeve(Double.parseDouble(fatorDeCorrecaoLeve.get(j)));
 
@@ -147,7 +162,7 @@ public class ControladorSimulacao {
 				alterarPropriedade("simulador.fatorDeCorrecaoHorarioDePico", fatorDeCorrecaoHorarioDePico.get(j));
 				parametros.setFatorCorrecaoHorario(Double.parseDouble(fatorDeCorrecaoHorarioDePico.get(j)));
 
-				for (int k = 0; k < 3; k++) {
+				for (int k = kInicial; k < 3; k++) {
 					alterarPropriedade("simulador.fatorDeInfluenciaLeve", fatorDeInfluenciaLeve.get(k));
 					parametros.setFatorInfluenciaLeve(Double.parseDouble(fatorDeInfluenciaLeve.get(k)));
 
@@ -157,7 +172,7 @@ public class ControladorSimulacao {
 					alterarPropriedade("simulador.fatorDeInfluenciaForte", fatorDeInfluenciaForte.get(k));
 					parametros.setFatorInfluenciaForte(Double.parseDouble(fatorDeInfluenciaForte.get(k)));
 
-					for (int l = 0; l < 3; l++) {
+					for (int l = lInicial; l < 3; l++) {
 						alterarPropriedade("simulador.fatorDeOscilacaoDoAtrasoDesvioPadrao",
 								fatorDeOscilacaoDoAtrasoDesvioPadrao.get(l));
 						parametros.setFatorOscilacaoAtraso(
@@ -168,10 +183,10 @@ public class ControladorSimulacao {
 						parametros.setFatorOscilacaoVelocidade(
 								Double.parseDouble(fatorDeOscilacaoDaVelocidadeDesvioPadrao.get(l)));
 
-						for (int m = 0; m < 3; m++) {
+						for (int m = mInicial; m < 3; m++) {
 
 							try {
-								logger.info("Iniciando simulador");
+								logger.info("Iniciando simulador para ijklm=" + i + j + k + l + m);
 								ProcessBuilder pb = new ProcessBuilder(stringExecucaoSimulador);
 								pb.redirectOutput(Redirect.appendTo(new File("simulador.log")));
 								pb.redirectError(Redirect.appendTo(new File("simulador.log")));
