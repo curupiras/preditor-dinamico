@@ -14,6 +14,7 @@ import br.unb.cic.controladorsimulacao.Parametros;
 import br.unb.cic.controladorsimulacao.Resultados;
 import br.unb.cic.extrator.dominio.arco.Arco;
 import br.unb.cic.extrator.dominio.arco.ArcoRepository;
+import br.unb.cic.extrator.dominio.localizacao.LocalizacaoRepository;
 import br.unb.cic.extrator.dominio.no.No;
 import br.unb.cic.extrator.dominio.no.NoRepository;
 import br.unb.cic.extrator.dominio.tempoviagem.TempoViagemRepository;
@@ -29,6 +30,9 @@ public class ConstrutorDeModelos {
 	
 	@Autowired
 	private TempoViagemRepository tempoViagemRepository;
+	
+	@Autowired
+	private LocalizacaoRepository LocalizacaoRepository;
 
 	@Autowired
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
@@ -76,7 +80,9 @@ public class ConstrutorDeModelos {
 				logger.error("Thread principal interrompida: ", e);
 			}
 			if (count == 0) {
-				tempoViagemRepository.updateProcessado();
+//				tempoViagemRepository.updateProcessado();
+				tempoViagemRepository.deleteAll();
+				LocalizacaoRepository.deleteAll();
 				resultados.flush();
 				break;
 			}
