@@ -27,19 +27,19 @@ public class ConstrutorDeModelos {
 
 	@Autowired
 	private NoRepository noRepository;
-	
+
 	@Autowired
 	private TempoViagemRepository tempoViagemRepository;
-	
+
 	@Autowired
-	private LocalizacaoRepository LocalizacaoRepository;
+	private LocalizacaoRepository localizacaoRepository;
 
 	@Autowired
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
 	@Autowired
 	private ApplicationContext appContext;
-	
+
 	@Autowired
 	private Resultados resultados;
 
@@ -80,14 +80,29 @@ public class ConstrutorDeModelos {
 				logger.error("Thread principal interrompida: ", e);
 			}
 			if (count == 0) {
-//				tempoViagemRepository.updateProcessado();
-				tempoViagemRepository.deleteAll();
-				LocalizacaoRepository.deleteAll();
+				// tempoViagemRepository.updateProcessado();
+				logger.info("Limpeza das tabelas");
+				tempoViagemRepository.deleteAllInBatch();
+				localizacaoRepository.deleteAllInBatch();
+				// limparTabelas();
+				logger.info("Fim da limpeza das tabelas");
+
 				resultados.flush();
 				break;
 			}
 		}
 	}
+
+	// @Transactional
+	// private void limparTabelas() {
+	// entityManager.joinTransaction();
+	//
+	// String sql = "TRUNCATE tempo_viagem_simulador;";
+	// entityManager.createNativeQuery(sql).executeUpdate();
+	//
+	// sql = "TRUNCATE posicao;";
+	// entityManager.createNativeQuery(sql).executeUpdate();
+	// }
 
 }
 
