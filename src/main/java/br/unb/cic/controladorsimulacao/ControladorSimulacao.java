@@ -196,23 +196,25 @@ public class ControladorSimulacao {
 								inicializado = true;
 							}
 
-							try {
-								logger.info("Iniciando simulador para ijklm=" + i + j + k + l + m);
-								ProcessBuilder pb = new ProcessBuilder(stringExecucaoSimulador);
-								pb.redirectOutput(Redirect.appendTo(new File("simulador.log")));
-								pb.redirectError(Redirect.appendTo(new File("simulador.log")));
-								Process process = pb.start();
-
-								Thread.sleep(tempoExecucaoSimulador);
-
-								logger.info("Finalizando simulador");
-								pb.redirectOutput(Redirect.appendTo(new File("lixo.log")));
-								pb.redirectError(Redirect.appendTo(new File("lixo.log")));
-								process.destroy();
-								finalizarSimulador();
-								Thread.sleep(5000);
-							} catch (InterruptedException | IOException e) {
-								logger.error("Execução do simulador interrompida:", e);
+							if(m == 0){
+								try {
+									logger.info("Iniciando simulador para ijklm=" + i + j + k + l + m);
+									ProcessBuilder pb = new ProcessBuilder(stringExecucaoSimulador);
+									pb.redirectOutput(Redirect.appendTo(new File("simulador.log")));
+									pb.redirectError(Redirect.appendTo(new File("simulador.log")));
+									Process process = pb.start();
+									
+									Thread.sleep(tempoExecucaoSimulador);
+									
+									logger.info("Finalizando simulador");
+									pb.redirectOutput(Redirect.appendTo(new File("lixo.log")));
+									pb.redirectError(Redirect.appendTo(new File("lixo.log")));
+									process.destroy();
+									finalizarSimulador();
+									Thread.sleep(5000);
+								} catch (InterruptedException | IOException e) {
+									logger.error("Execução do simulador interrompida:", e);
+								}
 							}
 
 							parametros.setTemposViagemAnteriores(

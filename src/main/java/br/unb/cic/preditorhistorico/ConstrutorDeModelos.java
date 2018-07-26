@@ -81,28 +81,19 @@ public class ConstrutorDeModelos {
 			}
 			if (count == 0) {
 				// tempoViagemRepository.updateProcessado();
-				logger.info("Limpeza das tabelas");
-				tempoViagemRepository.deleteAllInBatch();
-				localizacaoRepository.deleteAllInBatch();
-				// limparTabelas();
-				logger.info("Fim da limpeza das tabelas");
+				
+				if(parametros.getTemposViagemAnteriores() == 2){
+					logger.info("Limpeza das tabelas");
+					tempoViagemRepository.deleteAllInBatch();
+					localizacaoRepository.deleteAllInBatch();
+					logger.info("Fim da limpeza das tabelas");
+				}
 
 				resultados.flush();
 				break;
 			}
 		}
 	}
-
-	// @Transactional
-	// private void limparTabelas() {
-	// entityManager.joinTransaction();
-	//
-	// String sql = "TRUNCATE tempo_viagem_simulador;";
-	// entityManager.createNativeQuery(sql).executeUpdate();
-	//
-	// sql = "TRUNCATE posicao;";
-	// entityManager.createNativeQuery(sql).executeUpdate();
-	// }
 
 }
 
