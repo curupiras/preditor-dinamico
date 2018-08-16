@@ -50,7 +50,11 @@ public class ControladorSimulacao {
 	@Autowired
 	private ConstrutorDeModelos construtorDeModelos;
 	
-	private boolean inicializado = false;
+	private boolean inicializadoI = false;
+	private boolean inicializadoJ = false;
+	private boolean inicializadoK = false;
+	private boolean inicializadoL = false;
+	private boolean inicializadoM = false;
 
 	private static final Logger logger = Logger.getLogger(ControladorSimulacao.class.getName());
 
@@ -138,6 +142,12 @@ public class ControladorSimulacao {
 		Parametros parametros = new Parametros();
 
 		for (int i = 0; i < 3; i++) {
+			
+			if(inicializadoI == false){
+				i = iInicial;
+				inicializadoI = true;
+			}
+			
 			alterarPropriedade("simulador.probabilidadeDeOcorrenciaDeEventoGrave",
 					probabilidadeDeOcorrenciaDeEventoGrave.get(i));
 			parametros.setProbabilidadeEventoGrave(Double.parseDouble(probabilidadeDeOcorrenciaDeEventoGrave.get(i)));
@@ -152,6 +162,12 @@ public class ControladorSimulacao {
 			parametros.setProbabilidadeEventoLeve(Double.parseDouble(probabilidadeDeOcorrenciaDeEventoLeve.get(i)));
 
 			for (int j = 0; j < 3; j++) {
+				
+				if(inicializadoJ == false){
+					j = jInicial;
+					inicializadoJ = true;
+				}
+				
 				alterarPropriedade("simulador.fatorDeCorrecaoLeve", fatorDeCorrecaoLeve.get(j));
 				parametros.setFatorCorrecaoLeve(Double.parseDouble(fatorDeCorrecaoLeve.get(j)));
 
@@ -165,6 +181,12 @@ public class ControladorSimulacao {
 				parametros.setFatorCorrecaoHorario(Double.parseDouble(fatorDeCorrecaoHorarioDePico.get(j)));
 
 				for (int k = 0; k < 3; k++) {
+					
+					if(inicializadoK == false){
+						k = kInicial;
+						inicializadoK = true;
+					}
+					
 					alterarPropriedade("simulador.fatorDeInfluenciaLeve", fatorDeInfluenciaLeve.get(k));
 					parametros.setFatorInfluenciaLeve(Double.parseDouble(fatorDeInfluenciaLeve.get(k)));
 
@@ -175,6 +197,12 @@ public class ControladorSimulacao {
 					parametros.setFatorInfluenciaForte(Double.parseDouble(fatorDeInfluenciaForte.get(k)));
 
 					for (int l = 0; l < 3; l++) {
+						
+						if(inicializadoL == false){
+							l = lInicial;
+							inicializadoL = true;
+						}
+						
 						alterarPropriedade("simulador.fatorDeOscilacaoDoAtrasoDesvioPadrao",
 								fatorDeOscilacaoDoAtrasoDesvioPadrao.get(l));
 						parametros.setFatorOscilacaoAtraso(
@@ -187,13 +215,9 @@ public class ControladorSimulacao {
 
 						for (int m = 0; m < 3; m++) {
 							
-							if(inicializado == false){
-								i = iInicial;
-								j = jInicial;
-								k = kInicial;
-								l = lInicial;
+							if(inicializadoM == false){
 								m = mInicial;
-								inicializado = true;
+								inicializadoM = true;
 							}
 
 							if(m == 0){
