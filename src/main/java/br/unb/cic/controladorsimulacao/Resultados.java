@@ -28,7 +28,9 @@ public class Resultados {
 	public void flush(){
 		while(fila.size() > 0){
 			Resultado resultado = fila.poll();
-			resultadoRepository.save(resultado);
+			if(resultado != null){
+				resultadoRepository.save(resultado);
+			}
 		}
 	}
 
