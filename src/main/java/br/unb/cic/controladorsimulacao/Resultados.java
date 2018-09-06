@@ -16,7 +16,7 @@ public class Resultados {
 
 	private Queue<Resultado> fila;
 
-	@PostConstruct
+//	@PostConstruct
 	private void init(){
 		this.fila = new LinkedList<>();
 	}

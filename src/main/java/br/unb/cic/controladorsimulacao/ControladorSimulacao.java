@@ -79,7 +79,7 @@ public class ControladorSimulacao {
 
 	private List<String> quantidadeDeTemposDeViagemAnteriores = new ArrayList<>();
 
-	@PostConstruct
+//	@PostConstruct
 	public void init() {
 
 		probabilidadeDeOcorrenciaDeEventoGrave.add("0.0000");
